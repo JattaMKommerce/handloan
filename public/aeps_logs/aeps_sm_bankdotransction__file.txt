@@ -1,0 +1,1 @@
+{"payload":"{\"bene_id\":\"44686\",\"amount\":\"6150\",\"refid\":\"RP962407456182\",\"mode\":\"IMPS\"}","url":"https:\/\/api.paysprint.in\/api\/v1\/service\/payout\/payout\/dotransaction","response":{"response_code":1,"status":true,"ackno":7341478,"message":"Payout Successfully received"}}

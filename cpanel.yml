@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/public_html/Resellers/login.amtechpe.in/
+    - /bin/cp -R * $DEPLOYPATH

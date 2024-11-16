@@ -1,0 +1,3 @@
+Date,"Transaction Id","User Details",Product,Number,"ST Type",Status,"Opening Balance",Credit,Debit
+"2023-09-12 12:27:40",104,"Anil Kumar (6393784138)",recharge,7007422419,main,pending," 99",,10
+"2023-09-12 12:33:13",105,"Anil Kumar (6393784138)",recharge,7007422419,main,pending," 89",,10

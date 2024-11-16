@@ -1,0 +1,460 @@
+
+/* ------------------------------------------------------------------------------
+ *
+ *  # Datatables library
+ *
+ *  Add advanced interaction controls to any HTML table
+ *
+ *  Version: 1.2
+ *  Latest update: Mar 10, 2016
+ *
+ * ---------------------------------------------------------------------------- */
+
+
+.dataTables_paginate {
+  float: right;
+  text-align: right;
+  margin: 0 0 20px 20px;
+}
+.dataTables_paginate .paginate_button {
+  display: inline-block;
+  padding: 9px;
+  min-width: 38px;
+  margin-left: 2px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  color: #333333;
+  border-radius: 3px;
+}
+.dataTables_paginate .paginate_button:first-child {
+  margin-left: 0;
+}
+.dataTables_paginate .paginate_button:hover,
+.dataTables_paginate .paginate_button:focus {
+  background-color: #f5f5f5;
+}
+.dataTables_paginate .paginate_button.current,
+.dataTables_paginate .paginate_button.current:hover,
+.dataTables_paginate .paginate_button.current:focus {background-color: var(--iq-primary);border-color: var(--iq-primary); color: #fff; }
+.dataTables_paginate .paginate_button.disabled,
+.dataTables_paginate .paginate_button.disabled:hover,
+.dataTables_paginate .paginate_button.disabled:focus {
+  cursor: default;
+  background-color: transparent;
+  color: #bbb;
+}
+.dataTables_paginate.paging_simple .paginate_button {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.paginate-left .dataTables_paginate {
+  float: left;
+}
+.paging_simple .paginate_button:hover,
+.paging_simple .paginate_button:focus {
+  color: #fff;
+  background-color: #455A64;
+}
+
+.datepicker > div {
+  display: none;
+}
+.datepicker.datepicker-dropdown {
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 16px;
+}
+.datepicker table {
+  margin: 0;
+}
+.datepicker table tr td.day:hover {
+  background-color: #f5f5f5;
+  cursor: pointer;
+}
+.datepicker table tr td.old,
+.datepicker table tr td.new {
+  color: #999999;
+}
+.datepicker table tr td.disabled,
+.datepicker table tr td.disabled:hover {
+  background-color: transparent;
+  color: #999999;
+  cursor: default;
+}
+.datepicker table tr td.today,
+.datepicker table tr td.today.disabled,
+.datepicker table tr td.today:hover,
+.datepicker table tr td.today.disabled:hover {
+  background-color: #f5f5f5;
+}
+.datepicker table tr td.range,
+.datepicker table tr td.range.disabled,
+.datepicker table tr td.range:hover,
+.datepicker table tr td.range.disabled:hover {
+  background-color: #f5f5f5;
+  border-radius: 0;
+}
+.datepicker table tr td.range.today,
+.datepicker table tr td.range.today.disabled,
+.datepicker table tr td.range.today.active,
+.datepicker table tr td.range.today:hover,
+.datepicker table tr td.range.today.disabled:hover,
+.datepicker table tr td.range.today.active:hover {
+  background-color: #f5f5f5;
+}
+.datepicker table tr td.active,
+.datepicker table tr td span.active,
+.datepicker table tr td.active.disabled,
+.datepicker table tr td span.active.disabled,
+.datepicker table tr td.active:hover,
+.datepicker table tr td span.active:hover,
+.datepicker table tr td.active.disabled:hover,
+.datepicker table tr td span.active.disabled:hover {
+  background-color: #26A69A;
+  color: #fff;
+}
+.datepicker table tr td span {
+  display: block;
+  width: 31%;
+  padding: 8px 16px;
+  float: left;
+  margin: 1%;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.datepicker table tr td span:hover {
+  background-color: #f5f5f5;
+}
+.datepicker table tr td span.disabled,
+.datepicker table tr td span.disabled:hover {
+  background-color: transparent;
+  color: #999999;
+  cursor: default;
+}
+.datepicker table tr td span.old,
+.datepicker table tr td span.new {
+  color: #999999;
+}
+.datepicker table th.datepicker-switch {
+  font-size: 17px;
+  font-weight: 400;
+}
+.datepicker table thead tr:first-child th,
+.datepicker table tfoot tr th {
+  cursor: pointer;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  line-height: 1;
+}
+.datepicker table .cw {
+  width: 16px;
+  padding: 0 2px 0 5px;
+  vertical-align: middle;
+}
+.datepicker table thead tr:first-child th.cw {
+  cursor: default;
+  background-color: transparent;
+}
+.datepicker .table-condensed td,
+.datepicker .table-condensed th {
+  text-align: center;
+  padding: 10px;
+  border-radius: 3px;
+  border: 0;
+  line-height: 1;
+}
+.datepicker .table-condensed th.dow {
+  padding-top: 16px;
+  color: #999999;
+}
+.table-striped .datepicker table tr th,
+.table-striped .datepicker table tr td {
+  background-color: transparent;
+}
+
+
+.ui-datepicker {
+  min-width: 270px;
+  background-color: #fff;
+  padding: 16px;
+  display: none;
+  border-radius: 3px;
+  z-index: 190;
+  -webkit-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+.sidebar .ui-datepicker {
+  min-width: 0;
+}
+.no-border .ui-datepicker {
+  border-width: 0;
+}
+.ui-datepicker .ui-datepicker-header {
+  position: relative;
+}
+.ui-datepicker .ui-datepicker-title {
+  margin: 0 40px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  font-size: 17px;
+  text-align: center;
+  line-height: 1;
+}
+.ui-datepicker .ui-datepicker-title .ui-datepicker-year {
+  font-size: 13px;
+  color: #999999;
+  margin-left: 5px;
+}
+.ui-datepicker .ui-datepicker-title select {
+  outline: 0;
+  height: 32px;
+  border-color: #ddd;
+}
+.ui-datepicker .ui-datepicker-title select.ui-datepicker-month,
+.ui-datepicker .ui-datepicker-title select.ui-datepicker-year {
+  width: 48%;
+  font-size: 13px;
+  color: #333333;
+}
+.ui-datepicker .ui-datepicker-prev,
+.ui-datepicker .ui-datepicker-next {
+  position: absolute;
+  top: 50%;
+  margin-top: -16px;
+  color: #333333;
+  padding: 8px;
+  border-radius: 2px;
+}
+.ui-datepicker .ui-datepicker-prev:after,
+.ui-datepicker .ui-datepicker-next:after {
+  font-family: 'icomoon';
+  display: block;
+  font-size: 16px;
+  width: 16px;
+  text-align: center;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.ui-datepicker .ui-datepicker-prev span,
+.ui-datepicker .ui-datepicker-next span {
+  display: none;
+}
+.ui-datepicker .ui-datepicker-prev {
+  left: 0;
+}
+.ui-datepicker .ui-datepicker-prev:after {
+  content: '\e9c8';
+}
+.ui-datepicker .ui-datepicker-next {
+  right: 0;
+}
+.ui-datepicker .ui-datepicker-next:after {
+  content: '\e9cb';
+}
+.ui-datepicker .ui-datepicker-prev-hover,
+.ui-datepicker .ui-datepicker-next-hover {
+  background-color: #f5f5f5;
+}
+.ui-datepicker table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+.ui-datepicker table th {
+  text-align: center;
+  font-weight: 400;
+  border: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 12px;
+  color: #999999;
+}
+.ui-datepicker table td {
+  border: 0;
+  padding: 1px;
+  position: relative;
+}
+.ui-datepicker table td span,
+.ui-datepicker table td a {
+  display: block;
+  padding: 6px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 3px;
+  color: #333333;
+  min-width: 34px;
+}
+.ui-datepicker table td .ui-state-hover {
+  background-color: #f5f5f5;
+}
+.ui-datepicker table td.ui-state-disabled span {
+  color: #ccc;
+}
+.ui-datepicker table td.ui-datepicker-week-col {
+  padding: 6px;
+  color: #999999;
+}
+.ui-datepicker table td.ui-datepicker-current-day .ui-state-active {
+  background-color: #26A69A;
+  color: #fff;
+}
+.ui-datepicker table td.ui-datepicker-today .ui-state-highlight {
+  background-color: #2196F3;
+  color: #fff;
+}
+.ui-datepicker table td.ui-datepicker-today .ui-state-highlight:after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid #fff;
+  border-left: 6px solid transparent;
+}
+.ui-datepicker table td a.ui-priority-secondary {
+  opacity: 0.6;
+  filter: alpha(opacity=60);
+}
+.ui-datepicker .ui-datepicker-buttonpane button {
+  float: right;
+  background-color: #f5f5f5;
+  font-weight: 400;
+  margin-top: 16px;
+  border: 0;
+  cursor: pointer;
+  padding: 8px 16px;
+  width: auto;
+  overflow: visible;
+  outline: 0;
+  border-radius: 3px;
+}
+.ui-datepicker .ui-datepicker-buttonpane button.ui-state-hover {
+  -webkit-box-shadow: 0 0 0 100px rgba(0, 0, 0, 0.05) inset;
+  box-shadow: 0 0 0 100px rgba(0, 0, 0, 0.05) inset;
+}
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current {
+  float: left;
+}
+.ui-datepicker .ui-datepicker-buttonpane button:active {
+  -webkit-box-shadow: 0 0 0 100px rgba(0, 0, 0, 0.1) inset;
+  box-shadow: 0 0 0 100px rgba(0, 0, 0, 0.1) inset;
+}
+.ui-datepicker.ui-datepicker-multi {
+  width: auto!important;
+}
+.datepicker-inline {
+  width: 264px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.full-width.datepicker-inline,
+.sidebar .datepicker-inline,
+.popover .datepicker-inline {
+  width: 100%;
+}
+.ui-datepicker-trigger {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  z-index: 4;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.ui-datepicker-row-break {
+  clear: both;
+  width: 100%;
+  font-size: 0;
+}
+.ui-datepicker-multi .ui-datepicker-group {
+  float: left;
+}
+.ui-datepicker-multi .ui-datepicker-group + .ui-datepicker-group {
+  padding-left: 15px;
+}
+.ui-datepicker-multi .ui-datepicker-group-last .ui-datepicker-header {
+  border-left-width: 0;
+}
+.ui-datepicker-multi .ui-datepicker-buttonpane {
+  clear: left;
+}
+.ui-datepicker-multi-2 .ui-datepicker-group {
+  width: 46%;
+}
+.ui-datepicker-multi-3 .ui-datepicker-group {
+  width: 33.3%;
+}
+.ui-datepicker-multi-4 .ui-datepicker-group {
+  width: 25%;
+}
+
+
+.contactuscard {
+  position: relative;
+  display: flex;
+  width: 350px;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid #d2d2dc;
+  border-radius: 11px;
+  -webkit-box-shadow: 0px 0px 5px 0px rgb(249, 249, 250);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(212, 182, 212, 1);
+  box-shadow: 0px 0px 5px 0px rgb(161, 163, 164)
+}
+
+
+
+.contactuscard p{
+  font-size: 14px;
+}
+
+.contactuscard h4{
+      margin-top: 18px;
+}
+
+
+.contactuscard .btn:focus {
+  outline: none
+}
+
+.contactuscard .btn {
+  border-radius: 22px;
+  text-transform: capitalize;
+  font-size: 13px;
+  padding: 8px 19px;
+  cursor: pointer;
+  color: #fff;
+  background-color: #D50000;
+  
+}
+
+
+.contactuscard .btn:hover{
+
+  background-color: #D32F2F !important;
+}
+
+.dz-message{
+  width:100%;
+  height:100px;
+  background-color:#FFFFFF;
+  border:2px solid;
+  border-style: dashed;
+border-radius: 25px;
+text-align: center;
+}
+
+.alert-success{
+  color: #08a12b !important;
+  font-weight: 500;
+}
+
+.btn-success{
+  background-color: #28a745 !important;
+}
