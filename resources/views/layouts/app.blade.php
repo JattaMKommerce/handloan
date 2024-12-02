@@ -41,6 +41,11 @@
     <link href="{{asset('custom.css')}}" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.css" integrity="sha512-X3jcmfsWau6LnAjqe0EJhFnyEtT3OJtWg9D/x4iroC6x8XarBaWTS5mSKwxd697eyLV0w8f29PPirMcsw4xE4Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>.modal-title {
+        margin-bottom: 0;
+        line-height: 1.5;
+        color: white;
+    }</style>
     @stack('style')
     <!-- Core JS files -->
     <!-- <script type="text/javascript" src="{{asset('')}}assets/js/plugins/loaders/pace.min.js"></script>
@@ -472,6 +477,7 @@
                         $('.' + index).text(value);
                     });
                     $('#mainwallet').text('₹ '+result.mainwallet);
+                    $('#aepswallet').text('₹ '+result.aepsbalance);
                 }
             });
 

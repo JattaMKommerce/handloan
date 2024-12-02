@@ -43,6 +43,11 @@ class FundController extends Controller
             case 'tr':
                 $permission = ['fund_transfer', 'fund_return'];
                 break;
+            case 'wallettowallet':
+                $data['allusers'] = User::where(['kyc'=>'verified','status'=>'active'])->whereNotIn('id',[\Auth::user()->id,1])->get(['id','name','mobile']);
+                $permission = ['wallettowallet'];
+                
+                break;
             case 'upi':
             case 'request':
                 $data['merchent'] = \DB::table('upimerchants')->where('user_id', \Auth::user()->id);
@@ -401,6 +406,13 @@ class FundController extends Controller
                                     ]);
                                    User::where('id', \Auth::id())->increment('mainwallet', $post->amount +$post->charge);
                                    return response()->json(['status' => "failed",'message'=>$resp->message], 200);
+                                }else if(!empty($resp->status) && $resp->status =='TXN' )
+                                {
+                                    Report::where('id', $report->id)->update([
+                                        'status' => 'success',
+                                        'refno'  => !empty($resp->rrn)?$resp->rrn:''
+                                    ]);
+                                    return response()->json(['status' => "success",'message'=>$resp->message], 200);
                                 }
                                 return response()->json(['status' => "success",'message'=>$resp->message], 200);
                             }

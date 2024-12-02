@@ -101,6 +101,7 @@ class StatementController extends Controller
             case 'paysprintaepsid':
             case 'aepsid':
             case 'iciciagent':
+            case 'fingagentid':
                 if ($id == 0) {
                     $permission = "aepsid_statement";
                 } else {

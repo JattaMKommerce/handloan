@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
 
 use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
 use MiladRahimi\Jwt\JwtGenerator;
+use Stevebauman\Location\Facades\Location;
 
 class RaepsController extends Controller
 {

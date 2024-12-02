@@ -294,6 +294,7 @@ $status['data'] = [
                 <div class="modal-body">
                     <input type="hidden" name="type" value="getrefund">
                     <input type="hidden" name="transid">
+                    <input type="hidden" name="stateresp">
                     <div class="form-group">
                         <label>OTP</label>
                         <input type="text" class="form-control" name="otp" placeholder="enter otp" required>
@@ -506,6 +507,7 @@ $status['data'] = [
                 if (type == "none") {
                     if (data.statuscode == "TXN") {
                         $('#otpModal').find('[name="transid"]').val(id);
+                        $('#otpModal').find('[name="stateresp"]').val(data.data.data.stateresp);
                         $('#otpModal').modal('show');
                     } else {
                         notify(data.message, 'error');

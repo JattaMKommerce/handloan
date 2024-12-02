@@ -390,7 +390,7 @@ class CommonController extends Controller
 				}
 				$request['whereIn'] = 'user_id';
 				break;
-
+            case 'w2wfundstatement':
 			case 'fundstatement':
 				$request['table'] = '\App\Models\Report';
 				$request['searchdata'] = ['amount', 'number', 'mobile', 'credit_by', 'user_id'];
@@ -525,15 +525,27 @@ class CommonController extends Controller
 				$request['order'] = ['id', 'desc'];
 				
 				if($id == 0){
-					$request['parentData'] = [\Auth::id()];
+					if (\Myhelper::hasRole(['admin'])){
+    				        $request['parentData'] = 'all';
+    				    }else{
+    				        $request['parentData'] = [\Auth::id()];
+    				    }
 				}else{
-					if(in_array($id, $parentData)){
+				// 	if(in_array($id, $parentData)){
+				// 		$request['parentData'] = [$id];
+				// 	}else if($id)
+				// 	{
+				// 	    $request['parentData'] = [$id];
+				// 	}
+				// 	else{
+				// 		$request['parentData'] = [\Auth::id()];
+				// 	}
+				if(in_array($id, $parentData)){
 						$request['parentData'] = [$id];
 					}else if($id)
 					{
 					    $request['parentData'] = [$id];
-					}
-					else{
+					}else{
 						$request['parentData'] = [\Auth::id()];
 					}
 				}
@@ -850,7 +862,34 @@ class CommonController extends Controller
 				}
 				$request['whereIn'] = 'user_id';
 				break;
-
+            case 'fingagentstatement':
+			$request['table']= '\App\Models\Fingagent';
+				$request['searchdata'] = ['merchantName','merchantPhoneNumber', 'merchantAadhar', 'id', 'merchantLoginId'];
+				$request['select'] = 'all';
+				$request['order'] = ['id','DESC'];
+				if ($id == 0 || $returntype == "all") {
+					if($id == 0){
+						if (\Myhelper::hasRole(['retailer', 'apiuser'])){
+							$request['parentData'] = [\Auth::id()];
+						}elseif(\Myhelper::hasRole(['md', 'distributor','whitelable','shm','sh','cl','dl','bl'])){
+							$request['parentData'] = $parentData;
+						}else{
+							$request['parentData'] = 'all';
+						}
+					}else{
+						if(in_array($id, $parentData)){
+							$request['parentData'] = \Myhelper::getParents($id);
+						}else{
+							$request['parentData'] = [\Auth::id()];
+						}
+					}
+					$request['whereIn'] = 'user_id';
+				}else{
+					$request['parentData'] = [$id];
+					$request['whereIn'] = 'id';
+					$request['return'] = 'single';
+				}
+				break;
 			case 'aepsagentstatement':
 				$request['table'] = '\App\Models\Mahaagent';
 				$request['searchdata'] = ['bc_f_name', 'bc_m_name', 'bc_id', 'phone1', 'phone2', 'emailid', 'id'];
@@ -1085,6 +1124,7 @@ class CommonController extends Controller
 			$request->type != "roles" &&
 			$request->type != "permissions" &&
 			$request->type != "fundrequestview" &&
+			$request->type != "w2wfundstatement" &&
 			$request->type != "fundrequest" &&
 			$request->type != "setupbank" &&
 			$request->type != "setupapi" &&
@@ -1307,7 +1347,9 @@ class CommonController extends Controller
 			case 'utipancardstatement':
 				$data->where('product', 'utipancard')->where('rtype', 'main');
 				break;
-
+            case 'w2wfundstatement':
+        		$data->where('product', 'walletTowallet');
+			break;
 			case 'fundstatement':
 				$data->whereHas('provider', function ($q) {
 					$q->where('recharge1', 'fund');
@@ -1329,9 +1371,9 @@ class CommonController extends Controller
 			case 'commissionstatement':
 				$data->where('rtype', 'commission');
 				break;
-			case 'accountstatement':
-				$data->where('product', "!=", 'investment');
-				break;
+// 			case 'accountstatement':
+// 				$data->where('product', "!=", 'investment');
+// 				break;
 			case 'investmentwalletstatement':
 				$data->where('product', 'investment');
 				break;

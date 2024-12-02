@@ -578,57 +578,7 @@
             <div class="modal-body">
                {!! nl2br($mydata['notice']) !!}
 
-               @if (\Myhelper::can('invesment_show') && !Myhelper::hasRole('admin'))
-
-               <p id="errormessage" style="color:red; font-weight:bold;margin-left:10px; margin-top:10px"> </p>
-               <div class="row">
-
-                  
-                  @foreach($invesmentshceme as $val)
-                  <div class="col-md-4 mb-3">
-
-                     @if(isset($val->banner))
-
-                     <div class="bg-image pt-4 pb-1 fs-5 px-4" style="background-image: url('banner/{{$val->banner->slides}}')">
-                        @else
-
-                        <div class="bg-image pt-4 pb-1 fs-5 px-4" style="background-image: url('bg.jpg')">
-                           @endif
-                           <?php $sdate = date_create($val->start_date);
-                           $edate = date_create($val->end_date);
-                           $mdate = date_create($val->maturity_at); ?>
-                           <p><b>From </b>: <span class="text-dark">{{date_format($sdate,"d M Y h:i A")}}</span></p>
-                           <p><b>To</b> : <span class="text-dark">{{date_format($edate,"d M Y h:i A")}}</span></p>
-                           <p><b>Title</b>: <span class="text-dark">{{$val->title}}</span></p>
-                           <p><b>Mature Amount</b> : <span class="text-dark">₹ {{$val->mature_amount}} </span></p>
-                           {{-- (Shares: {{$val->totalNoOfShare}} ) --}}
-                           <p><b>Mature At</b> : <span class="text-dark">{{date_format($mdate,"d M y")}}</span></p>
-                           <p><b>Amount </b>: <span class="text-dark">₹{{$val->amount}}</span></p>
-                           
-                              <p><b>Invested Amount </b>: <span class="text-dark">₹{{isset($val->invested_amount) ? $val->invested_amount : 0}} (Shares: {{isset($val->allotted_no_of_share) ? $val->allotted_no_of_share : 0}} )</span></p>
-                           
-
-                           <div class="row mt-3 mb-3">
-                              <div class="col-8">
-                                 @if(isset($val->is_investment_complete) && $val->is_investment_complete == "1")
-                                 <button class="btn btn-success text-white  investcls-{{$val->id}}" type="button">INVESTED</button>
-                                 @else
-                                 <button class="btn btn-primary  investcls-{{$val->id}}" type="button" onclick="investmentModel('{{$val}}')">INVEST</button>
-                                 @endif
-                                
-                              </div>
-                              <div class="col-4">
-                                 @if(isset($val->video))
-                                 <a href="{{asset('banner/')}}/{{$val->video->slides}}" target="_blank"><img src="{{asset('/banner/')}}/video.jpg" width="80px" height="50px"></a>
-                                 @endif
-                              </div>
-                           </div>
-
-                        </div>
-                     </div>
-                     @endforeach
-                  </div>
-                  @endif
+              
                </div>
                <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

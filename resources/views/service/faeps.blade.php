@@ -20,10 +20,11 @@
     @if(!$agent) 
         <div class="row">
             <div class="col-sm-12">
-                <div class="card iq-card iq-mb-3">
-                    
-                    <div class="card-body">
+                <div class="iq-card">
+                    <div class="panel-heading">
                         <h4 class="panel-title">Merchant AePs KYC</h4>
+                    </div>
+                    <div class="iq-card-body">
                         @if($agent)
                             @if($agent->status == "rejected")
                                 <p class="text-danger">Reason - {{$agent->remark}}</p>
@@ -31,7 +32,6 @@
                         @endif
                         <form action="{{ route('iaepstransaction') }}" method="post" id="fingkycForm" enctype="multipart/form-data"> 
                             {{ csrf_field() }}
-                            <input type="hidden" name="transactionType" id="transactionType" value="useronboard">
                             <input type="hidden" name="transactionType" id="transactionType" value="useronboard">
                             <div class="row">
                                     <div class="form-group col-md-4">
@@ -59,7 +59,8 @@
                                     <label>Aadhaar Number</label>
                                     <input type="text" class="form-control" name="merchantAadhar" pattern="[0-9]*" oninput="this.value = this.value.toUpperCase()" maxlength="12" minlength="12" autocomplete="off" placeholder="Enter Your Aadhaar" value="" required>
                                 </div>
-                            
+                            </div>
+                            <div class="row">
                                 <div class="form-group col-md-4">
                                     <label>Pancard Number</label>
                                     <input type="text" class="form-control" autocomplete="off" maxlength="10" minlength="10" oninput="this.value = this.value.toUpperCase()" name="userPan" placeholder="Enter Your Pancard" value=""  required>
@@ -123,12 +124,21 @@
                                     <input type="text" pattern="[0-9]*" class="form-control" oninput="this.value = this.value.toUpperCase()" name="companyBankAccountNumber" autocomplete="off" placeholder="Enter Your companyBankAccountNumber"  required >
                                 </div>
                                 <div class="form-group col-md-4">
-                                    <label>BankIfscCode </label>
+                                    <label>bankIfscCode </label>
                                     <input type="text" class="form-control" autocomplete="off"   name="bankIfscCode" placeholder="bankIfscCode" value=""  required>
                                 </div>
                             </div>
-                            
                                
+                    </div>
+                </div>
+            </div>
+             <div class="col-sm-12">
+                <div class="iq-card">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">Company KYC</h4>
+                    </div>
+                    <div class="iq-card-body">
+                       
                             <div class="row">
                                     
                                   <div class="form-group col-md-4">
@@ -144,24 +154,29 @@
                                
                             </div>
                             
-                            <div class="form-group text-center">
-                                <button type="submit" class="btn bg-primary" data-loading-text="<b><i class='fa fa-spin fa-spinner'></i></b> Submitting"><b><i class=" icon-paperplane"></i></b> Submit Kyc</button>
-                            </div>
+                            
+                         
+                                <div class="form-group text-center">
+                                    <button type="submit" class="btn bg-teal-400 btn-labeled btn-rounded legitRipple btn-primary" data-loading-text="<b><i class='fa fa-spin fa-spinner'></i></b> Submitting"><b><i class=" icon-paperplane"></i></b> Submit Kyc</button>
+                                </div>
                         </form>
-             
-                    
-                   
+                         @if(isset($error))
+                               <div class="panel-footer text-center text-danger">
+                        Error - {{$error}}
+                            </div>
+                         @endif
+                    </div>
                 </div>
             </div>
-        </div>
         </div>
         @elseif($agent->merchant_status == "pending")
         <div class="row">
             <div class="col-sm-12">
-                <div class="card iq-card iq-mb-3">
-                    
-                    <div class="card-body">
+                <div class="iq-card">
+                    <div class="panel-heading">
                         <h4 class="panel-title">Merchant AePs KYC</h4>
+                    </div>
+                    <div class="iq-card-body">
                         @if($agent)
                             @if($agent->status == "rejected")
                                 <p class="text-danger">Reason - {{$agent->remark}}</p>
@@ -207,7 +222,6 @@
                                     <input type="text" class="form-control" name="merchantAadhar" pattern="[0-9]*" oninput="this.value = this.value.toUpperCase()" maxlength="12" minlength="12" autocomplete="off" placeholder="Enter Your Aadhaar" value="" required>
                                 </div>
                             </div>
-                            
                             <div class="row">
                                 <div class="form-group col-md-4">
                                     <label>Pancard Number</label>
@@ -275,21 +289,20 @@
                                     <input type="text" pattern="[0-9]*" class="form-control" oninput="this.value = this.value.toUpperCase()" name="companyBankAccountNumber" autocomplete="off" placeholder="Enter Your companyBankAccountNumber"  required >
                                 </div>
                                 <div class="form-group col-md-4">
-                                    <label>BankIfscCode </label>
+                                    <label>bankIfscCode </label>
                                     <input type="text" class="form-control" autocomplete="off"   name="bankIfscCode" placeholder="bankIfscCode" value=""  required>
                                 </div>
-                                
                             </div>
                                
                     </div>
                 </div>
             </div>
              <div class="col-sm-12">
-                <div class="panel panel-default">
+                <div class="iq-card">
                     <div class="panel-heading">
                         <h4 class="panel-title">Company KYC</h4>
                     </div>
-                    <div class="panel-body">
+                    <div class="iq-card-body">
                        
                             <div class="row">
                                     
@@ -309,7 +322,7 @@
                             
                          
                                 <div class="form-group text-center">
-                                    <button type="submit" class="btn bg-teal-400 btn-labeled btn-rounded legitRipple btn-lg" data-loading-text="<b><i class='fa fa-spin fa-spinner'></i></b> Submitting"><b><i class=" icon-paperplane"></i></b> Submit Kyc</button>
+                                    <button type="submit" class="btn bg-teal-400 btn-labeled btn-rounded legitRipple btn-primary" data-loading-text="<b><i class='fa fa-spin fa-spinner'></i></b> Submitting"><b><i class=" icon-paperplane"></i></b> Submit Kyc</button>
                                 </div>
                         </form>
                          @if(isset($error))
@@ -328,17 +341,17 @@
                     <div class="iq-card">
                         <div class="panel-heading p-0">
                             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                               <li class="nav-item">
-                                    <a href="#cw-tab" onclick="AEPSTAB('BE')" data-toggle="tab" class="nav-link active" id="BE" aria-expanded="false">Balance Enquiry</a>
+                                <li class="nav-item">
+                                    <a href="#cw-tab" onclick="AEPSTAB('BE')"class="nav-link" data-toggle="tab" class="legitRipple active" id="BE" aria-expanded="false">Balance Enquiry</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#cw-tab" onclick="AEPSTAB('MS')" id="MS" data-toggle="tab" class="nav-link" aria-expanded="false">Mini Statement</a>
+                                    <a href="#cw-tab" onclick="AEPSTAB('MS')" class="nav-link" id="MS" data-toggle="tab" class="legitRipple" aria-expanded="false">Mini Statement</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#cw-tab" id="CW" onclick="AEPSTAB('CW')" data-toggle="tab" class="nav-link" aria-expanded="false">Cash Withdrawal</a>
+                                    <a href="#cw-tab" id="CW" onclick="AEPSTAB('CW')" class="nav-link" data-toggle="tab" class="legitRipple" aria-expanded="false">Cash Withdrawal</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#cw-tab" onclick="AEPSTAB('M')" id="M" data-toggle="tab" class="nav-link" aria-expanded="false">Aadhaar Pay</a>
+                                    <a href="#cw-tab" onclick="AEPSTAB('M')" id="M" class="nav-link" data-toggle="tab" class="legitRipple" aria-expanded="false">Aadhaar Pay</a>
                                 </li>
                             </ul>
                         </div>
@@ -347,10 +360,10 @@
                             <div class="tab-pane active" id="cw-tab">
                                 <form action="{{route('iaepstransaction')}}" method="POST" id="aepsTransactionForm" enctype="multipart/form-data">
                                     {{ csrf_field() }}
-                                    <div class="card-body">
+                                    <div class="iq-card-body">
                                         <input type="hidden" name="transactionType" id="transactionType" value="BE">
                                         <input type="hidden" name="aeps" value="">
-                                        <div class="row">
+                                        <div class="">
                                             <div class="form-group col-md-12">
                                                 <label>Device Type :</label>
                                                 <div class="row mb-20">
@@ -386,7 +399,7 @@
                                                     </div>
                                                     <div class="col-md-2">
                                                         <div class="md-radio m-b-0">
-                                                            <input autocomplete="off" type="radio" value="PB100_PROTOBUF" id="STARTEK_PROTOBUF" name="device" >
+                                                            <input autocomplete="off" type="radio" value="PB100_PROTOBUF" id="PB100_PROTOBUF" name="device" >
                                                             <label for="PB100_PROTOBUF" style="padding: 0 25px">PB100</label>
                                                         </div>
                                                     </div>
@@ -395,18 +408,16 @@
                                             <input type="hidden" id="txtPidData" name="txtPidData" value="" class="form-control">
                                             
                                         <div class="row">
-                                            <div class="form-group col-md-6">
+                                            <div class="col">
                                                 <label>Mobile Number :</label>
                                                 <input type="text"  class="form-control" name="mobileNumber" id="mobileNumber" maxlength="10"  autocomplete="off" placeholder="Enter mobile number" required>
                                                 
                                             </div>
-                                            <div class="form-group col-md-6">
+                                            <div class="col">
                                                 <label>Aadhar Number :</label>
                                                 <input type="text" class="form-control" name="adhaarNumber" id="adhaarNumber" maxlength="12" minlength="12" autocomplete="off" pattern="[0-9]*"  placeholder="Enter aadhar number" required="">
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="form-group col-md-6">
+                                            <div class="col">
                                                 <label>Bank :</label>
                                                 <div id="bankId1">
                                                     <select name="bankName1" id="bankName1" class="form-control select" required="">
@@ -425,25 +436,29 @@
                                                     </select>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div class="row">
+                                            
                                             <div class="form-group col-md-6 transactionAmount">
                                                 
                                             </div>
                                        </div>
-                                <div class="row">
-                                    <div class="panel-footer text-center">
-                                    @if($agent->status == "approved")
-                                        <button type="submit" class="btn bg-slate-800 btn-lg btn-raised legitRipple" data-loading-text="<b><i class='fa fa-spin fa-spinner'></i></b> Proceeding...">Scan & Submit</button>
+                                <!--<div class="row">-->
+                                    <!--<div class="panel-footer text-center">-->
+                                    
+                                    <!--</div>-->
+                                <!--</div>-->
+                            </div>
+                            @if($agent->status == "approved")
+                                        <button type="submit" class="btn btn-primary" data-loading-text="<b><i class='fa fa-spin fa-spinner'></i></b> Proceeding...">Scan & Submit</button>
                                         @if($agent->everify == "pending")
-                                            <button type="button" class="btn bg-slate-800 btn-lg btn-raised legitRipple everify">Click Here To Complete E-Kyc</button>
+                                            <button type="button" class="btn btn-primary everify">Click Here To Complete E-Kyc</button>
                                         @endif
                                     @elseif($agent->status == "approved" && $agent->everify == "pending"))
-                                        <button type="button" class="btn bg-slate-800 btn-lg btn-raised legitRipple everify">Click Here To Complete E-Kyc</button>
+                                        <button type="button" class="btn btn-danger everify">Click Here To Complete E-Kyc</button>
                                     @else
                                         <h4 class="text-danger">Kyc is {{$agent->status}}</h4>
                                     @endif
-                                    </div>
-                                </div>
-                            </div>
                         </form>
                     </div>
                 </div>
@@ -472,12 +487,12 @@
             <div id="printreceipt" class="modal-body p-0">
             <div class="modal-body p-0">
                 <div class="panel panel-primary">
-                    <div class="panel-body">
+                    <div class="iq-card-body">
                         <div class="clearfix">
                             <div class="pull-left">
                                 <h4>
                                     @if (Auth::user()->company->logo)
-                                        <img src="{{asset('')}}public/logos/{{Auth::user()->company->logo}}" class=" img-responsive" alt="" style="width: 220px;height: 40px;">
+                                        <img src="{{asset('')}}logos/{{Auth::user()->company->logo}}" class=" img-responsive" alt="" style="width: 220px;height: 40px;">
                                     @else
                                         {{Auth::user()->company->companyname}}
                                     @endif
@@ -562,7 +577,7 @@
             </div>
             <div id="printmini" class="modal-body p-0">
                 <div class="panel panel-primary">
-                    <div class="panel-body">
+                    <div class="iq-card-body">
                         <div class="clearfix">
                             
                             <div class="pull-right">
@@ -625,14 +640,13 @@
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header bg-primary">
-                <h6 class="modal-title bgtor" style="color:white">2nd Facer Authentication</h6>
                 <button type="button" class="close" data-dismiss="modal" style="margin-top: -17px;">&times;</button>
-                
+                <h6 class="modal-title bgtor">2nd Facer Authentication</h6>
             </div>
             
             <div class="modal-body p-0">
                 <div class="panel panel-primary">
-                    <div class="panel-body p-5">
+                    <div class="iq-card-body p-5">
                        <div class="row">
                            <div class="col-md-2 p-0">
                                <img src="{{asset('assets/fingericon.png') }}" width="100%">
@@ -645,10 +659,11 @@
                            
                        </div>
                        
-                        <form action="{{route('fingpay2fa')}}" method="POST" id="aepsAuthForm" enctype="multipart/form-data">
+                        <form action="{{route('iaepstransaction')}}" method="POST" id="aepsAuthForm" enctype="multipart/form-data">
                            {{ csrf_field() }}
-                           <input type="hidden" name="mybiodata"  class="form-control" required />
-                           <input type="hidden" name="serviceType"  value="AEPS" required />
+                           <input type="hidden" id="txtPidData" name="txtPidData" value="" class="form-control">
+                          <input type="hidden" name="transactionType" id="transactionType" value="2fa">
+                            <input type="hidden" name="aeps" value="">
                            <div class="row">
                                <div class="form-group col-md-12">
                                     <label>Aadhar Number :</label>
@@ -679,63 +694,7 @@
     </div>
 </div>
 
-<div id="aptwostepauthmodal" class="modal " role="dialog" tabindex="-1">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <div class="modal-header bg-primary">
-                <h6 class="modal-title bgtor" style="color:white">2nd Facer Authentication For Aadhar Pay</h6>
-                <button type="button" class="close" data-dismiss="modal" style="margin-top: -17px;">&times;</button>
-                
-            </div>
-            
-            <div class="modal-body p-0">
-                <div class="panel panel-primary">
-                    <div class="panel-body p-5">
-                       <div class="row">
-                           <div class="col-md-2 p-0">
-                               <img src="{{asset('assets/fingericon.png') }}" width="100%">
-                           </div>
-                           <div class="col-md-10">
-                               <b>Instructions:</b><br>
-                               <p>As per regulatory guidelines, this is mandatory for Aadhaar related services, confirm your identify daily for once.
-                                    नियामक दिशानिर्देशों के अनुसार आपको अपनी पहचान की पुष्टि प्रतिदिन एकबार करनी होगी |</p>
-                           </div>
-                           
-                       </div>
-                       
-                        <form action="{{route('fingpay2fa')}}" method="POST" id="apAuthForm" enctype="multipart/form-data">
-                           {{ csrf_field() }}
-                           <input type="hidden" name="mybiodata"  class="form-control" required />
-                           <input type="hidden" name="serviceType"  value="AP" required />
-                           <div class="row">
-                               <div class="form-group col-md-12">
-                                    <label>Aadhar Number :</label>
-                                    <input type="text" class="form-control" name="adhaarNumber" value="{{Auth::user()->aadharcard}}" id="adhaarNumber" maxlength="12" minlength="12" autocomplete="off" pattern="[0-9]*"  placeholder="Enter aadhar number" required="">
-                            
-                               </div>
-                               
-                               <div class="form-group col-md-12">
-                                    <label>Select Device :</label>
-                                    <select name="device" class="form-control" required>
-                                        <option value="">Select Device</option>
-                                        <option value="MANTRA_PROTOBUF" selected>Mantra Device</option>
-                                        <option value="MORPHO_PROTOBUF">Other Device</option>
-                                    </select>
-                               </div>
-                            </div>
-                            
-                            <div class="row">
-                               <div class="form-group col-md-12">
-                                   <button type="submit" class="btn btn-success">Proceed</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 </div>
 @endif
 
@@ -752,7 +711,7 @@
 <script type="text/javascript" src="{{asset('')}}assets/js/core/notify.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        @if(isset($isdoneaepsauth) && $isdoneaepsauth == 'false')
+        @if(isset($isdoneaepsauth) && $isdoneaepsauth == 'false' && !empty($agent->everify) && $agent->everify == "success")
             $('#twostepauthmodal').modal();  
          @endif
         
@@ -1061,7 +1020,7 @@
             },
             submitHandler: function (element) {
                 var form = $("#aepsAuthForm" );
-                var scan = form.find('[name="mybiodata"]').val();
+                var scan = form.find('[name="txtPidData"]').val();
                
                 if(scan != ''){
                     form.ajaxSubmit({
@@ -1078,8 +1037,8 @@
                         },
                         success:function(data){
                             form.find('button[type="submit"]').button('reset');
-                            form.find('[name="mybiodata"]').val('');
-                            if(data.status == "TXN"){
+                            form.find('[name="txtPidData"]').val('');
+                            if(data.status == "success"){
                                 swal({
                                     title:'Suceess', 
                                     text : data.message, 
@@ -1098,7 +1057,7 @@
                             
                         },
                         error: function(errors) {
-                            form.find('[name="mybiodata"]').val('');
+                            form.find('[name="txtPidData"]').val('');
                             showError(errors, form);
                         }
                     });
@@ -1109,82 +1068,7 @@
             }
         });
         
-        $( "#apAuthForm" ).validate({
-            rules: {
-                adhaarNumber: {
-                    required: true,
-                    number: true,
-                    minlength: 12,
-                    maxlength: 12
-                },
-                device: 'required'
-            },
-            messages: {
-                adhaarNumber: {
-                    required: "Please enter aadhar number",
-                    number: "Aadhar number should be numeric",
-                    minlength: "Your aadhar number must be 12 digit",
-                    maxlength: "Your aadhar number must be 12 digit"
-                },
-                device : "Please select device"
-            },
-            errorElement: "p",
-            errorPlacement: function ( error, element ) {
-                if ( element.prop( "name" ) === "bankId" ) {
-                    error.insertAfter( element.closest( ".form-group" ).find("span.select2"));
-                } else {
-                    error.insertAfter( element );
-                }
-            },
-            submitHandler: function (element) {
-                var form = $("#apAuthForm" );
-                var scan = form.find('[name="mybiodata"]').val();
-               
-                if(scan != ''){
-                    form.ajaxSubmit({
-                        dataType:'json',
-                        beforeSubmit:function(){
-                            swal({
-                            title: 'Wait!',
-                            text: 'Request Processing...!',
-                            onOpen: () => {
-                                swal.showLoading()
-                            },
-                            allowOutsideClick: () => !swal.isLoading()
-                        });
-                        },
-                        success:function(data){
-                            form.find('button[type="submit"]').button('reset');
-                            form.find('[name="mybiodata"]').val('');
-                            if(data.status == "TXN"){
-                                swal({
-                                    title:'Suceess', 
-                                    text : data.message, 
-                                    type : 'success',
-                                    onClose: () => {
-                                        window.location.reload();
-                                    }
-                                });
-                            }else{
-                                swal({
-                                    title:'Failed', 
-                                    text : data.message, 
-                                    type : 'error'
-                                });
-                            }
-                            
-                        },
-                        error: function(errors) {
-                            form.find('[name="mybiodata"]').val('');
-                            showError(errors, form);
-                        }
-                    });
-                }else{
-                    
-                    scandataforapauth();
-                }
-            }
-        });
+       
         
         $('.everify').click(function (){
             SYSTEM.AJAX("{{route('iaepstransaction')}}", "POST", {"transactionType" : "useronboardotp"}, function(data){
@@ -1270,7 +1154,6 @@
                                     var mybiodata  = this.$content.find('[name="mybiodata"]').val();
                                     var primaryKeyId  = this.$content.find('[name="primaryKeyId"]').val();
                                     var encodeFPTxnId = this.$content.find('[name="encodeFPTxnId"]').val();
-                                    this.$content.find('[name="mybiodata"]').val(null);
                                     if(!device){
                                         $.alert({
                                             title: 'Oops!',
@@ -1291,8 +1174,8 @@
                                     
                                     SYSTEM.AJAX("{{route('iaepstransaction')}}", "POST", { "transactionType" : "useronboardekyc", "biodata" : mybiodata, "primaryKeyId" : primaryKeyId, 'encodeFPTxnId' : encodeFPTxnId,'device' : device}, function(data){
                                         if(!data.statusText){
-                                            kycConfirm.close();
                                             if(data.status == "TXN"){
+                                                kycConfirm.close();
                                                 $.alert({
                                                     icon: 'fa fa-check',
                                                     theme: 'modern',
@@ -1311,7 +1194,7 @@
                                                     }
                                                 });
                                             }else{
-                                                
+                                                this.$content.find('[name="mybiodata"]').val(null);
                                                 if(data.status == 400){
                                                     $.alert({
                                                         title: 'Oops!',
@@ -1380,16 +1263,45 @@
             });  
                     otpConfirm.open();
                 }else{
-                    //console.log(data);
-                    notify(data.message, 'warning');
+                    SYSTEM.SHOWERROR(data, $("#aepsTransactionForm"));
                 }
             }else{
-                SYSTEM.SHOWERROR(data, $(form));
+                SYSTEM.SHOWERROR(data, $("#aepsTransactionForm"));
             }
         }, '#aepsTransactionForm', 'Please Wait');
     });
     });
-    
+     var SYSTEM = {
+    AJAX: function(url, method, data, callback, errorElement, waitMessage) {
+         var csrfToken = $('meta[name="csrf-token"]').attr('content');
+        $.ajax({
+            url: url,
+            type: method,
+            data: data,
+             headers: {
+                'X-CSRF-TOKEN': csrfToken  // Include the CSRF token in the headers
+            },
+            beforeSend: function() {
+                if (waitMessage) {
+                    $(errorElement).html(waitMessage);
+                }
+            },
+            success: function(response) {
+                callback(response);
+            },
+            error: function(jqXHR) {
+                if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                    SYSTEM.SHOWERROR(jqXHR.responseJSON, $(errorElement));
+                } else {
+                    SYSTEM.SHOWERROR(jqXHR, $(errorElement));
+                }
+            }
+        });
+    },
+    SHOWERROR: function(data, element) {
+        $(element).html(`<div class="alert alert-danger">${data.message || data.statusText}</div>`);
+    }
+};
     function scandata() {
         var device = $( "#aepsTransactionForm" ).find('[name="device"]:checked').val();
         rdservice(device, "11100");
@@ -1525,7 +1437,7 @@
 
                     notify("Fingerprint Captured Successfully", "success");
                     if(type == "authentication"){
-                         $('[name="mybiodata"]').val(data);
+                         $('[name="txtPidData"]').val(data);
                           $('#aepsAuthForm').submit();
                     }else if(type == "apauthentication"){
                          $('[name="mybiodata"]').val(data);
@@ -1544,7 +1456,7 @@
                     if(errorCode == '0'){
                         notify("Fingerprint Captured Successfully", "success");
                         if(type == "authentication"){
-                            $('[name="mybiodata"]').val("<PidData>"+mydata+"</PidData>");
+                            $('[name="txtPidData"]').val("<PidData>"+mydata+"</PidData>");
                               $('#aepsAuthForm').submit();
                         }else if(type == "apauthentication"){
                             $('[name="mybiodata"]').val("<PidData>"+mydata+"</PidData>");

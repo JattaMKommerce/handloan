@@ -560,7 +560,7 @@ class CallbackController extends Controller
                 }
                 break;
             case 'CMS_BALANCE_INQUIRY' :
-                   $order  = \DB::table('cms_orders')->where('txnid', $post->param['refid'])->first();
+                  $order  = \DB::table('cms_orders')->where('txnid', $post->param['refid'])->first();
                     if(!$order){
                         return response()->json(['status' => 400, 'message' => "Transaction failed"]);
                     }
@@ -587,10 +587,10 @@ class CallbackController extends Controller
                         return response()->json(['status' => 400, 'message' => "Transaction failed"]);
                     }
                     
-                   if($post->param['amount'] > 0 && $post->param['amount'] <= 100000){
-                       $provider = Provider::where('recharge1', 'cms1')->first();
-                       $post['provider_id']=$provider->id;
-                   }else{
+                  if($post->param['amount'] > 0 && $post->param['amount'] <= 100000){
+                      $provider = Provider::where('recharge1', 'cms1')->first();
+                      $post['provider_id']=$provider->id;
+                  }else{
                     $provider = Provider::where('recharge1', 'cms2')->first();
                     $post['provider_id']=$provider->id;
                   } 
@@ -640,7 +640,7 @@ class CallbackController extends Controller
                         {
                              $report = Report::where('txnid',$post->param['refid'])->first();    
                             \Myhelper::commission($report);    
-                           return response()->json(["status"=> 200,"message"=>"Transaction completed successfully"]);     
+                          return response()->json(["status"=> 200,"message"=>"Transaction completed successfully"]);     
                         }
                          return response()->json(['status' => 400, 'message' => "Transaction failed"]);
                       
@@ -659,7 +659,7 @@ class CallbackController extends Controller
                         {
                              $report = Report::where('txnid',$post->param['refid'])->first();    
                             \Myhelper::commission($report);    
-                           return response()->json(["status"=> 200,"message"=>"Transaction completed successfully"]);      
+                          return response()->json(["status"=> 200,"message"=>"Transaction completed successfully"]);      
                         }
                          return response()->json(['status' => 400, 'message' => "Transaction failed"]);
                       

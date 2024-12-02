@@ -17,6 +17,7 @@ use App\Models\Package;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class Permission {
     /**
@@ -1322,4 +1323,22 @@ class Permission {
         }
         return $binString;
     }
+    
+    public static function generateUniqueToken() {
+        $today = Carbon::today();
+        $grandtotal = Report::whereDate('created_at', $today)->count();
+        //dd($grandtotal);
+        if($grandtotal=='0'){
+            $txnId = date('d').date('m').date('Y').'001'; 
+        } else if($grandtotal < 10) {
+            $txnId = date('d').date('m').date('Y').'00'.($grandtotal + 1);   
+        }else if($grandtotal < 99) {
+            $txnId = date('d').date('m').date('Y').'0'.($grandtotal + 1);   
+        }else{
+            $txnId = date('d').date('m').date('Y').($grandtotal + 1);  
+        }
+        
+        return $txnId.rand(1111, 9999);
+    }
+    
 }

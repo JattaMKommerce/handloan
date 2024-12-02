@@ -186,4 +186,44 @@ class Controller extends BaseController
             return 'fail';
         }
     }
+    
+    public function getTDSGlobally()
+    {
+    	$code = \DB::table('portal_settings')->where('code', 'tdswithpercent')->first(['value']);
+        if($code){
+    	   return $code->value ?? 0;
+        }else{
+            return 0;
+        }
+    }
+
+    public function calculateGlobalyTDS($profitableamount)
+    {
+       if($profitableamount > 0 && ($this->getTDSGlobally() > 0)){
+           $tdsvalue = $profitableamount*$this->getTDSGlobally()/100;
+       }else{
+           $tdsvalue = 0;
+       }
+       return $tdsvalue;
+    }
+    public function calculateGlobalyGST($profitableamount)
+    {
+       if($profitableamount > 0 && ($this->getGSTGlobally() > 0)){
+           $gstvalue = $profitableamount*$this->getGSTGlobally()/100;
+       }else{
+           $gstvalue = 0;
+       }
+       
+       return $gstvalue;
+    }
+    
+    public function getGSTGlobally()
+    {
+    	$code = \DB::table('portal_settings')->where('code', 'gstwithpercent')->first(['value']);
+        if($code){
+    	   return $code->value ?? 0;
+        }else{
+            return 0;
+        }
+    }
 }

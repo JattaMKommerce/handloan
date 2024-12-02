@@ -10,7 +10,7 @@
         @else
             <a href="{{ route('home') }}" class="header-logo">
                 <img src="" class="img-fluid rounded" alt="">
-                <span>AmtechPe</span>
+                <span>UjjwalPay</span>
             </a>
         @endif
         <div class="iq-menu-bt align-self-center">
@@ -186,6 +186,11 @@
                                         <li class="{{ Request::is('dmt') ? 'active' : '' }}"><a
                                                 href="{{ route('dmt2') }}"><i
                                                     class="las la-book text-danger"></i><b>DMT</b></a></li>
+                                    @endif
+                                     @if (Myhelper::can('dmt3_service'))
+                                        <li class="{{ Request::is('dmt') ? 'active' : '' }}"><a
+                                                href="{{ route('dmt3') }}"><i
+                                                    class="las la-book text-danger"></i><b>PP-DMT</b></a></li>
                                     @endif
                                     @if (Myhelper::can('dmt2_service'))
                                         <li class="{{ Request::is('pdmt') ? 'active' : '' }}"><a
@@ -400,6 +405,10 @@
                                             href="{{ route('fund', ['type' => 'statement']) }}"><i
                                                 class="ri-stack-line text-danger"></i><b>All Fund Report</b></a></li>
                                 @endif
+                                @if (Myhelper::can(['wallettowallet']))
+                                 <li class="{{ Request::is('fund/wallettowallet') ? 'active' : '' }}"><a href="{{route('fund', ['type' => 'wallettowallet'])}}"><i
+                                                class="fa fa-file text-info"></i><b>Move to Wallet</b></a></li>
+                                 @endif
                             </ul>
                         </li>
                     @endif
@@ -555,30 +564,30 @@
                     <!--    </li>-->
                     <!--@endif-->
 
-                    <!--@if (Myhelper::can(['utiid_statement', 'aepsid_statement']))-->
-                    <!--    <li-->
-                    <!--        class="{{ Request::is('statement/aepsid') || Request::is('statement/utiid') ? 'active' : '' }}">-->
-                    <!--        <a href="#agentList" class="iq-waves-effect collapsed" data-toggle="collapse"-->
-                    <!--            aria-expanded="{{ Request::is('statement/aepsid') || Request::is('statement/utiid') ? 'true' : 'false' }}"><i-->
-                    <!--                class="fa fa-group text-info iq-arrow-left"></i><b>Agent List</b><i-->
-                    <!--                class="ri-arrow-right-s-line iq-arrow-right"></i></a>-->
-                    <!--        <ul id="agentList"-->
-                    <!--            class="iq-submenu collapse {{ Request::is('statement/aepsid') || Request::is('statement/utiid') ? 'show' : '' }}"-->
-                    <!--            data-parent="#iq-sidebar-toggle">-->
-                    <!--            @if (Myhelper::can('aepsid_statement'))-->
-                    <!--                <li class="{{ Request::is('statement/aepsid') ? 'active' : '' }}"><a-->
-                    <!--                        href="{{ route('statement', ['type' => 'aepsid']) }}"><i-->
-                    <!--                            class="fa fa-user text-warning"></i><b>Aeps </b></a></li>-->
-                    <!--            @endif-->
+                    @if (Myhelper::can(['utiid_statement', 'aepsid_statement']))
+                        <li
+                            class="{{ Request::is('statement/fingagentid') || Request::is('statement/utiid') ? 'active' : '' }}">
+                            <a href="#agentList" class="iq-waves-effect collapsed" data-toggle="collapse"
+                                aria-expanded="{{ Request::is('statement/fingagentid') || Request::is('statement/utiid') ? 'true' : 'false' }}"><i
+                                    class="fa fa-group text-info iq-arrow-left"></i><b>Agent List</b><i
+                                    class="ri-arrow-right-s-line iq-arrow-right"></i></a>
+                            <ul id="agentList"
+                                class="iq-submenu collapse {{ Request::is('statement/fingagentid') || Request::is('statement/utiid') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                @if (Myhelper::can('aepsid_statement'))
+                                    <li class="{{ Request::is('statement/fingagentid') ? 'active' : '' }}"><a
+                                            href="{{ route('statement', ['type' => 'fingagentid']) }}"><i
+                                                class="fa fa-user text-warning"></i><b>Aeps </b></a></li>
+                                @endif
 
-                    <!--            @if (Myhelper::can('utiid_statement'))-->
-                    <!--                <li class="{{ Request::is('statement/utiid') ? 'active' : '' }}"><a-->
-                    <!--                        href="{{ route('statement', ['type' => 'utiid']) }}"><i-->
-                    <!--                            class="fa fa-rupee text-danger"></i><b>UTI</b></a></li>-->
-                    <!--            @endif-->
-                    <!--        </ul>-->
-                    <!--    </li>-->
-                    <!--@endif-->
+                                <!--@if (Myhelper::can('utiid_statement'))-->
+                                <!--    <li class="{{ Request::is('statement/utiid') ? 'active' : '' }}"><a-->
+                                <!--            href="{{ route('statement', ['type' => 'utiid']) }}"><i-->
+                                <!--                class="fa fa-rupee text-danger"></i><b>UTI</b></a></li>-->
+                                <!--@endif-->
+                            </ul>
+                        </li>
+                    @endif
                     @if (Myhelper::can([
                             'account_statement',
                             'utiid_statement',
