@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/handloan/public_html/saas.handloan.ai/
+    - /bin/cp -R app $DEPLOYPATH
+    - /bin/cp -R routes $DEPLOYPATH
+    - /bin/cp -R resources $DEPLOYPATH
+    - /bin/cp -R config $DEPLOYPATH
+    - /bin/cp .htaccess $DEPLOYPATH
