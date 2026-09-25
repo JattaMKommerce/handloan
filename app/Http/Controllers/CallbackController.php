@@ -916,5 +916,94 @@ class CallbackController extends Controller
     {
         return $amount*18/100;
     }
+    
+     public function rkbbps(Request $doc)
+    {
+
+        \DB::table('microlog')->insert(['product' => 'rkbbps', 'response' => json_encode($doc->all())]);
+        
+        if (isset($doc->client_key)) {
+           
+             $report = Report::where(['txnid' => $doc->client_key, 'product' => 'billpay'])->first();
+           if($report->status == 'pending'){
+              if ($doc->status == "received") {
+                $update['status'] = "pending";
+                $update['payid'] = $doc->trans_no;
+                $update['refno'] = "pending";
+            } elseif ($doc->status == "success") {
+                $update['status'] = "success";
+                $update['payid'] = $doc->trans_no;
+                $update['refno'] = $doc->success_id;
+            } elseif ($doc->status == "suspense") {
+                $update['status'] = "pending";
+                $update['payid'] = $doc->trans_no;
+                $update['refno'] = "pending";
+            } elseif ($doc->status == "failure") {
+                \Myhelper::transactionRefund($report->id);
+                $update['status'] ="reversed";
+                $update['payid'] = $doc->trans_no;
+                $update['refno'] = $doc->msg;
+            } elseif ($doc->status == "error") {
+                \Myhelper::transactionRefund($report->id);
+                $update['status'] = "reversed";
+                $update['payid'] = 'failed';
+                $update['refno'] = $doc->msg;
+            } else {
+                $update['status'] = "pending";
+                $update['payid'] = "pending";
+                $update['refno'] = "pending";
+            }
+            $update = Report::where(['id' => $report->id])->update($update);
+            return response()->json(['statuscode' => 'TXN', 'message' => 'success']); 
+           }
+        }else{
+            return response()->json(['statuscode' => 'TNF', 'message' => 'failed']);
+        }
+    }
+    
+    public function branchxCallback(Request $post)
+     {
+         \DB::table('microlog')->insert(['product'=>'branchx_callback','response'=>json_encode($post->all())]);
+         $data = json_encode($post->all());
+         $response = json_decode($data);
+         if(isset($response->status) && $response->status== 'SUCCESS'){
+             
+             $reportpayout = Report::where(['status'=>'pending','txnid'=>$response->requestId])->first();
+                
+                if(isset($reportpayout)){
+                   \DB::table('reports')->where('id',$reportpayout->id)->update(['status'=>'success','refno'=>$response->utr]);
+                   
+                    $fundreport = Report::where('txnid', $reportpayout->txnid)->first();
+                    $charge = \Myhelper::getCommission($fundreport->amount, $reportpayout->user->scheme_id, $fundreport->provider_id, $reportpayout->user->role->slug);
+                    $post['gst'] = $this->getGst($fundreport->charge  - $charge);
+                    User::where('id', $fundreport->user_id)->increment('mainwallet', $fundreport->charge - $charge );
+                    \Myhelper::commission($fundreport);
+                    // $update['status'] = "success";
+                    // $update['refno'] = $post->refno;
+                    
+                    $transferamount = number_format((float)$fundreport->amount, 2, '.', '');
+                    $crediteracc = 'XXXX'.substr($fundreport->number, -4);
+                    $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards MADHAVAM DIGITAL PAYMENTS";
+                    $send = \Myhelper::sms($fundreport->mobile, $msg);
+                    if($this->iswpdeliver() == 'ON'){
+                        $send = \Myhelper::whatsappsms($fundreport->mobile, $msg);
+                    }
+                         
+                }
+                
+                
+            }
+            elseif(isset($response->status) && $response->status== 'FAILED'){
+                $reportpayout = Report::where(['status'=>'pending','txnid'=>$response->requestId])->first();
+                if(!empty($reportpayout))
+                {
+                    \DB::table('reports')->where('id',$reportpayout->id)->update(['status'=>'reversed','refno'=>$response->utr]);
+                    \Myhelper::transactionRefund($reportpayout->id);
+                    
+                }
+                
+            }
+             
+     }
 
 }

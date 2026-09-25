@@ -17,13 +17,16 @@ use App\Models\PortalSetting;
 use App\Models\Api;
 use App\Models\Adminprofit;
 use App\Models\Aepsuser;
+use App\Models\fingagent;
 use App\Models\Banner;
 use App\Models\Investment;
 use App\Models\Video;
 use Illuminate\Support\Facades\Auth;
 
+use MiladRahimi\Jwt\Generator;
+use MiladRahimi\Jwt\Parser;
+use MiladRahimi\Jwt\Cryptography\Keys\HmacKey;
 use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
-use MiladRahimi\Jwt\JwtGenerator;
 
 class CommonController extends Controller
 {
@@ -88,6 +91,7 @@ class CommonController extends Controller
 			case 'distributor':
 			case 'retailer':
 			case 'apiuser':
+		    case 'sabadmin':
 			case 'other':
 			case 'employee':
 			case 'tr':
@@ -1156,6 +1160,7 @@ class CommonController extends Controller
 				'distributor',
 				'retailer',
 				'apiuser',
+				'sabadmin',
 				'other',
 				'employee',
 				'tr'
@@ -1173,6 +1178,7 @@ class CommonController extends Controller
 			case 'distributor':
 			case 'retailer':
 			case 'apiuser':
+		    case 'sabadmin':
 			case 'employee':
 				$data->whereHas('role', function ($q) use ($request) {
 					$q->where('slug', $request->type);
@@ -1207,7 +1213,7 @@ class CommonController extends Controller
 
 			case 'tr':
 				$data->whereHas('role', function ($q) use ($request) {
-					$q->whereIn('slug', ['whitelable', 'md', 'distributor', 'retailer', 'apiuser']);
+					$q->whereIn('slug', ['whitelable', 'md', 'distributor', 'retailer', 'apiuser','sabadmin']);
 				})->where('kyc', 'verified');
 				break;
 
@@ -1410,7 +1416,7 @@ class CommonController extends Controller
 					case 'fundstatement':
 					case 'aepsfundrequestview':
 					case 'aepsfundrequestviewall':
-						$data->where('type', $request->product);
+						$data->where('product', $request->product);
 						break;
 				}
 			}
@@ -1436,6 +1442,7 @@ class CommonController extends Controller
 					case 'distributor':
 					case 'retailer':
 					case 'apiuser':
+				    case 'sabadmin':
 					case 'other':
 					case 'employee':
 					case 'tr':
@@ -1670,13 +1677,14 @@ class CommonController extends Controller
 					'merchantLoginId' => 'required',
 					'merchantLoginPin' => 'required',
 					'status' => 'required',
+					'merchant_status' => 'required',
 				);
 
 				$validator = \Validator::make($post->all(), $rules);
 				if ($validator->fails()) {
 					return response()->json(['errors' => $validator->errors()], 422);
 				}
-				$action = Aepsuser::where('id', $post->id)->update($post->except(['id', '_token', 'actiontype']));
+				$action = Fingagent::where('id', $post->id)->update($post->except(['id', '_token', 'actiontype']));
 				if ($action) {
 					return response()->json(['status' => "success"], 200);
 				} else {
@@ -2048,52 +2056,77 @@ class CommonController extends Controller
 				$method = $apiIntegration->method;
 
 				// case 'recharge':
-				// 	switch ($report->api->code) {
-				// 		case 'recharge1':
-				// 			$url = $report->api->url . '/status?token=' . $report->api->username . '&apitxnid=' . $report->txnid;
-				// 			$method = "GET";
-				// 			$parameter = "";
-				// 			$header = [];
-				// 			break;
+					switch ($report->api->code) {
+					    
+					    case '3':
+					        $url = "https://api.paysprint.in/api/v1/service/recharge/recharge/status"; //$report->api->url."recharge/status";
+							//$url = 'https://paysprint.in/service-api/api/v1/service/recharge/recharge/status' ;
+							$method = "POST";
+							$parameter = json_encode(
+								array(
+									'referenceid' => $report->txnid,
+								)
+							);
 
-				// 		case 'recharge2':
-				// 			$url = "https://api.paysprint.in/api/v1/service/recharge/recharge/status"; //$report->api->url."recharge/status";
-				// 			//$url = 'https://paysprint.in/service-api/api/v1/service/recharge/recharge/status' ;
-				// 			$method = "POST";
-				// 			$parameter = json_encode(
-				// 				array(
-				// 					'referenceid' => $report->txnid,
-				// 				)
-				// 			);
+							$payload = [
+								"timestamp" => time(),
+								"partnerId" => $report->api->username,
+								"reqid" => $report->user_id . Carbon::now()->timestamp
+							];
 
-				// 			$payload = [
-				// 				"timestamp" => time(),
-				// 				"partnerId" => $report->api->username,
-				// 				"reqid" => $report->user_id . Carbon::now()->timestamp
-				// 			];
+							$token = $this->getToken($report->user_id.Carbon::now()->timestamp);
+							$header = array(
+								"Cache-Control: no-cache",
+								"Content-Type: application/json",
+								"Token: " . $token['token'],
+								"Authorisedkey: " . $report->api->optional3
+							);
+					        break;
+						case 'recharge1':
+							$url = $report->api->url . '/status?token=' . $report->api->username . '&apitxnid=' . $report->txnid;
+							$method = "GET";
+							$parameter = "";
+							$header = [];
+							break;
 
-				// 			$key = $report->api->password;
-				// 			$signer = new HS256($key);
-				// 			$generator = new JwtGenerator($signer);
-				// 			$header = array(
-				// 				"Cache-Control: no-cache",
-				// 				"Content-Type: application/json",
-				// 				"Token: " . $generator->generate($payload),
-				// 				"Authorisedkey: " . $report->api->optional3
-				// 			);
-				// 			// dd($url,$parameter,$header) ;
-				// 			break;
+						case 'recharge2':
+							$url = "https://api.paysprint.in/api/v1/service/recharge/recharge/status"; //$report->api->url."recharge/status";
+							//$url = 'https://paysprint.in/service-api/api/v1/service/recharge/recharge/status' ;
+							$method = "POST";
+							$parameter = json_encode(
+								array(
+									'referenceid' => $report->txnid,
+								)
+							);
 
-				// 		case 'recharge5':
-				// 			$url = $report->api->url . 'StatusCheck?UserID=' . $report->api->username . '&Token=' . $report->api->password . '&RPID=' . $report->payid . '&AGENTID=' . $report->txnid;
-				// 			$method = "GET";
-				// 			$parameter = "";
-				// 			$header = [];
-				// 			break;
-				// 		default:
-				// 			return response()->json(['status' => "Recharge Status Not Allowed"], 400);
-				// 			break;
-				// 	}
+							$payload = [
+								"timestamp" => time(),
+								"partnerId" => $report->api->username,
+								"reqid" => $report->user_id . Carbon::now()->timestamp
+							];
+
+							$key = $report->api->password;
+							$signer = new HS256($key);
+							$generator = new JwtGenerator($signer);
+							$header = array(
+								"Cache-Control: no-cache",
+								"Content-Type: application/json",
+								"Token: " . $generator->generate($payload),
+								"Authorisedkey: " . $report->api->optional3
+							);
+							// dd($url,$parameter,$header) ;
+							break;
+
+						case 'recharge5':
+							$url = $report->api->url . 'StatusCheck?UserID=' . $report->api->username . '&Token=' . $report->api->password . '&RPID=' . $report->payid . '&AGENTID=' . $report->txnid;
+							$method = "GET";
+							$parameter = "";
+							$header = [];
+							break;
+						default:
+							return response()->json(['status' => "Recharge Status Not Allowed"], 400);
+							break;
+					}
 				break;
 			case 'licbillpayment':
 				//	$url = "https://api.paysprint.in/api/v1/service/bill-payment/bill/licstatus";
@@ -2136,7 +2169,7 @@ class CommonController extends Controller
 
 					case 'paysprintbill':
 						$provider = Provider::where('id', $report->provider_id)->first();
-						$url = $report->api->url . "bill/status";
+						$url = $report->api->url . "/bill-payment/bill/status";
 						if ($provider && $provider->type == "fasttag") {
 							$url = "https://api.paysprint.in/api/v1/service/fastag/Fastag/status";
 						}
@@ -2156,9 +2189,10 @@ class CommonController extends Controller
 							"reqid" => $report->user_id . Carbon::now()->timestamp
 						];
 						// dd($parameter) ;
-						$key = $report->api->password;
+						$keyString = $report->api->password;
+						$key = new HmacKey($keyString);
 						$signer = new HS256($key);
-						$generator = new JwtGenerator($signer);
+						$generator = new Generator($signer);
 						$header = array(
 							"Cache-Control: no-cache",
 							"Content-Type: application/json",
@@ -2237,6 +2271,15 @@ class CommonController extends Controller
 					case 'runpaisafund':
 						return (["message" => "Status Fetch successfully"]);
 						break;
+					case 'bxpayout':
+					    $url = 'https://10x.api.branchx.in/service/status_check';
+    			        $key = $report->api->username;
+    			        $header = array("Content-Type: application/json", "apiToken: ".$key);
+    			        $method = "GET";
+    			        $parameter = [
+    			            'requestId' => $report->txnid
+    			            ];
+					    break;
 					default:
 						return response()->json(['status' => "Payout Status Not Allowed"]);
 						break;
@@ -2290,6 +2333,31 @@ class CommonController extends Controller
 							"Authorisedkey: " . $report->api->optional1
 						);
 						break;
+					case 'm2payout':
+					    $url = 'https://login.m2money.in/api/merchant/bank/payout/status';
+					    $method = "POST";
+					    $parameter = json_encode(
+					        
+					        array(
+					            'token' => $report->api->username,
+								'txnid' => $report->txnid,
+							)
+					        );
+					   $header = array(
+							"Cache-Control: no-cache",
+							"Content-Type: application/json",
+							
+						);
+					    break;
+					case 'bxpayout':
+					    $url = 'https://10x.api.branchx.in/service/status_check';
+    			        $key = $report->api->username;
+    			        $header = array("Content-Type: application/json", "apiToken: ".$key);
+    			        $method = "GET";
+    			        $parameter = [
+    			            'requestId' => $report->txnid
+    			            ];
+					    break;
 
 					default:
 						return response()->json(['status' => "Dmt Status Not Allowed"]);
@@ -2300,23 +2368,24 @@ class CommonController extends Controller
 			case 'aeps':
 				switch ($report->api->code) {
 					case 'raeps':
-						$url = $report->api->url . "aeps/aepsquery/query";
+						$url = $report->api->url . "aadharpay/aadharpayquery/query";
 						$method = "POST";
 						$parameters['reference'] = $report->txnid;
 
+						
 
-						$key = "f4222daf470aef51"; //$this->api->optional2;
-						$iv = "c316420cbd6de29b"; //$this->api->optional3;
+			            $key = "aa2182f9a64ddc35"; //$this->api->optional2;
+						$iv = "72d5e4245c79b4b6"; //$this->api->optional3;
 						$cipher = openssl_encrypt(json_encode($parameters, true), 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
 						$request = base64_encode($cipher);
 						$request = array('body' => $request);
 						$parameter = http_build_query($request);
-						$token = $this->getPToken($report->user_id . Carbon::now()->timestamp);
+						$token = $this->getaepsToken($report->user_id . Carbon::now()->timestamp);
 						$header = array(
 							"Cache-Control: no-cache",
 							"Content-Type: application/x-www-form-urlencoded",
 							"Token: " . $token['token'],
-							"Authorisedkey: OWU3ZjExYjI1YmVhYjkyMGU5ZWRkMmMxYTVmZTYzOWE="
+							"Authorisedkey: N2QwYWZlZGVlMzFjMjMzODFjMjE4Y2VlNDg0NjViZTA="
 						);
 						break;
 					default:
@@ -2378,22 +2447,23 @@ class CommonController extends Controller
 				);
 				break;
 			case 'ragentstatus':
-				//$url = 'https://paysprint.in/service-api/api/v1/service/onboard/onboard/getonboardstatus' ;	    
-				$url = "https://api.paysprint.in/api/v1/service/onboard/onboard/getonboardstatus";
+			    $api = Api::where('code', 'raeps')->first();
+				$url = 'https://sit.paysprint.in/service-api/api/v1/service/onboard/onboard/getonboardstatus' ;	    
+				//$url = "https://api.paysprint.in/api/v1/service/onboard/onboard/getonboardstatus";
 				$method = "POST";
-				$token = $this->getPToken($report->user_id . Carbon::now()->timestamp);
+				$token = $this->getaepsToken($report->user_id . Carbon::now()->timestamp);
 				$header = array(
 					"Cache-Control: no-cache",
 					"Content-Type: application/json",
 					"Accept: application/json",
-					"Token: " . $token['token'],
-					"Authorisedkey: OWU3ZjExYjI1YmVhYjkyMGU5ZWRkMmMxYTVmZTYzOWE="
+					"Token: ".$token['token'],
+					"Authorisedkey: ".$api->optional1
 				);
 				$parameter = json_encode(
 					array(
 						'merchantcode' => $report->merchantLoginId,
 						'mobile' => $report->merchantPhoneNumber,
-						'pipe' => "bank1",
+						'pipe' => "bank2",
 
 					)
 				);
@@ -2449,7 +2519,7 @@ class CommonController extends Controller
 		}
 
 		$result = \Myhelper::curl($url, $method, $parameter, $header,'yes');
-		// dd($result, $url, $method, $parameter, $header);
+// 		dd($result, $url, $method, $parameters, $header);
 		if ($result['response'] != '') {
 			switch ($post->type) {
 				case 'recharge':
@@ -2494,6 +2564,36 @@ class CommonController extends Controller
 							$update['status'] = "pending";
 							$update['refno'] = isset($response[$apiIntegration->refno]) ? $response[$apiIntegration->refno] : "pending";
 						}
+					}
+					switch ($report->api->code) {
+					    
+					    case '3':
+					        if(isset($response->status) && $response->status == true){
+							    if(isset($response->data)){
+							        if($response->data->status == "1" ){
+							          $update['refno'] = $response->data->txnid ?? $report->refno;
+							          $update['status'] = "success";  
+							        }
+							        elseif($response->data->status == "0"){
+							           $update['refno'] = $response->data->txnid ?? $report->refno;
+							          $update['status'] = "reversed";  
+							        }
+							        else{
+							          $update['refno'] = $response->data->txnid ?? $report->refno;
+							          $update['status'] = "pending";
+							        }
+								
+							}else{
+								$update['status'] = "reversed";
+								$update['refno'] = $response->data->txnid ?? $report->refno;
+							}
+							}
+							else{
+							     $update['status'] = "reversed";
+								$update['refno'] = $response->message ?? $report->refno;
+							}
+					        break;
+					        
 					}
 					break;
 
@@ -2609,6 +2709,7 @@ class CommonController extends Controller
 								$update['status'] = "pending";
 								//$update['refno']  = "Please wait for status change or contact service provider";
 							}
+							break;
 					}
 
 
@@ -2655,7 +2756,42 @@ class CommonController extends Controller
 					}
 					$product = "utipancard";
 					break;
-
+                case 'payoutstatus':
+                    $doc = json_decode($result['response']);
+					//dd($doc);
+					switch ($report->api->code) {
+                        case 'bxpayout':
+    						    \DB::table('rp_log')->insert([
+    								'ServiceName' => "BXpayoutStatus",
+    								'header' => json_encode($header),
+    								'body' => json_encode($parameter),
+    								'response' => $result['response'],
+    								'url' => $url,
+    								'created_at' => date('Y-m-d H:i:s')
+    							]);
+    							$doc = json_decode($result['response']);
+    							if(($doc->status =="SUCCESS")){
+        							$update['refno'] = $doc->opRefId;
+        							$update['status'] = "success";
+        						}elseif($doc->status =="FAILED"){
+        							$update['status'] = "reversed";
+        							$update['refno'] = !empty($doc->opRefId)?$doc->opRefId:$doc->message;
+        						}elseif($doc->status =="REVERSED"){
+        							$update['status'] = "reversed";
+        							$update['refno'] = !empty($doc->opRefId)?$doc->opRefId:$doc->message;
+        						}elseif($doc->status =="PENDING"){
+        							$update['status'] = "pending";
+        							$update['refno'] = $doc->message;
+        						}elseif($doc->status =="NOT_FOUND"){
+        							$update['status'] = "reversed";
+        							$update['refno'] = !empty($doc->opRefId)?$doc->opRefId:$doc->message;
+        						}else{
+        							$update['status'] = "Unknown";
+        							$update['refno'] = $doc->message;
+        						}
+    						    break;
+					}
+                    break;
 				case 'money':
 					$doc = json_decode($result['response']);
 					//dd($doc);
@@ -2708,6 +2844,74 @@ class CommonController extends Controller
 								$update['status'] = "pending";
 							}
 							break;
+						case 'm2payout':
+							\DB::table('rp_log')->insert([
+								'ServiceName' => "M2payoutStatus",
+								'header' => json_encode($header),
+								'body' => json_encode($parameter),
+								'response' => $result['response'],
+								'url' => $url,
+								'created_at' => date('Y-m-d H:i:s')
+							]);
+							$doc = json_decode($result['response']);
+							if(isset($doc->statuscode) && $doc->statuscode == "TXN")
+                            {
+                                if($doc->trans_status =='reversed')
+                                {
+                                    $update['status'] = "reversed";
+								    $update['refno'] = (isset($doc->message)) ? $doc->message : 'failed';
+                                }
+                                else if($doc->trans_status == 'success')
+                                {
+                                    $update['status'] = "success";
+    								$update['payid'] = (isset($doc->ackno)) ? $doc->ackno : 'success';
+    								$update['refno'] = (isset($doc->refno)) ? $doc->refno : 'success';
+                                }else
+                                {
+                                    $update['status'] = "pending";
+                                }
+                                
+                            }
+                            else if(isset($doc->statuscode) && ($doc->statuscode == "TNF")){
+                                
+                                $update['status'] = "reversed";
+								$update['refno'] = (isset($doc->message)) ? $doc->message : 'failed';
+                            }
+                            else {
+								$update['status'] = "pending";
+							}
+							
+							break;
+						case 'bxpayout':
+						    \DB::table('rp_log')->insert([
+								'ServiceName' => "BXpayoutStatus",
+								'header' => json_encode($header),
+								'body' => json_encode($parameter),
+								'response' => $result['response'],
+								'url' => $url,
+								'created_at' => date('Y-m-d H:i:s')
+							]);
+							$doc = json_decode($result['response']);
+							if(($doc->status =="SUCCESS")){
+    							$update['refno'] = $doc->opRefId;
+    							$update['status'] = "success";
+    						}elseif($doc->status =="FAILED"){
+    							$update['status'] = "reversed";
+    							$update['refno'] = !empty($doc->opRefId)?$doc->opRefId:$doc->message;
+    						}elseif($doc->status =="REVERSED"){
+    							$update['status'] = "reversed";
+    							$update['refno'] = !empty($doc->opRefId)?$doc->opRefId:$doc->message;
+    						}elseif($doc->status =="PENDING"){
+    							$update['status'] = "pending";
+    							$update['refno'] = $doc->message;
+    						}elseif($doc->status =="NOT_FOUND"){
+    							$update['status'] = "reversed";
+    							$update['refno'] = !empty($doc->opRefId)?$doc->opRefId:$doc->message;
+    						}else{
+    							$update['status'] = "Unknown";
+    							$update['refno'] = $doc->message;
+    						}
+						    break;
 					}
 					$product = "aeps";
 					break;
@@ -2877,6 +3081,7 @@ class CommonController extends Controller
 					case 'utipancard':
 					case 'licbillpayment':
 					case 'money':
+				    case 'payoutstatus':
 						$reportupdate = Report::updateOrCreate(['id' => $post->id], $update);
 						if ($reportupdate && $update['status'] == "reversed") {
 							\Myhelper::transactionRefund($post->id);
@@ -3152,4 +3357,71 @@ class CommonController extends Controller
 		$generator = new JwtGenerator($signer);
 		return ['token' => $generator->generate($payload), 'payload' => $payload];
 	}
+	
+	public function getToken($uniqueid)
+    {
+        $prechargeapi = Api::where('code', '3')->first();
+        $payload =  [
+            "timestamp" => time(),
+            "partnerId" => $prechargeapi->username,
+            "reqid"     => $uniqueid
+        ];
+        
+        //$keyString = $this->api->password;
+         $keyString = $prechargeapi->password;
+        
+        if (strlen($keyString) < 32) {
+            throw new \Exception ("Key length is too short. It must be at least 32 characters.");
+        }
+        $key = new HmacKey($keyString);
+    
+        $algorithm = new HS256($key);
+    
+        // Generate a JWT
+        $generator = new Generator($algorithm);
+    
+        try {
+            $jwt = $generator->generate($payload);
+           //dd($jwt);
+            return ['token' => $jwt, 'payload' => $payload];
+        } catch (\Exception $e) {
+           
+            dd($e->getMessage());
+        }
+         
+    }
+    
+    
+    	public function getaepsToken($uniqueid)
+    {
+        $prechargeapi = Api::where('code', 'raeps')->first();
+        $payload =  [
+            "timestamp" => time(),
+            "partnerId" => $prechargeapi->username,
+            "reqid"     => $uniqueid
+        ];
+        
+        //$keyString = $this->api->password;
+         $keyString = $prechargeapi->password;
+        
+        if (strlen($keyString) < 32) {
+            throw new \Exception ("Key length is too short. It must be at least 32 characters.");
+        }
+        $key = new HmacKey($keyString);
+    
+        $algorithm = new HS256($key);
+    
+        // Generate a JWT
+        $generator = new Generator($algorithm);
+    
+        try {
+            $jwt = $generator->generate($payload);
+           //dd($jwt);
+            return ['token' => $jwt, 'payload' => $payload];
+        } catch (\Exception $e) {
+           
+            dd($e->getMessage());
+        }
+         
+    }
 }

@@ -28,25 +28,33 @@ class TransactionActivity
         //$geodata   = geoip($post->ip());
         $log['ip'] = $post->ip();
         $ip = $post->ip();
-        $response = Http::get("http://ip-api.com/json/{$ip}");
+       // $response = Http::get("http://ip-api.com/json/{$ip}");
+        $new_arr[]= unserialize(file_get_contents('http://www.geoplugin.net/php.gp?ip='.$ip));
+        if(!empty($new_arr))
+        {
+            $latitude = $new_arr[0]['geoplugin_latitude'];
+            $longitude = $new_arr[0]['geoplugin_longitude'];
+        }
+        
         $log['user_agent']   = $post->server('HTTP_USER_AGENT');
         if(\Auth::check()){
             $log['user_id']  = \Auth::id();
         }else{
             $log['user_id']  = $post->user_id;
         }
-        if ($response->successful()) {
-            $data = $response->json();
-            $latitude = $data['lat'];
-            $longitude = $data['lon'];
+        // if ($response->successful()) {
+        //     $data = $response->json();
+        //     $latitude = $data['lat'];
+        //     $longitude = $data['lon'];
         
             
-        }
+        // }
         $log['geo_location'] = $latitude."/".$longitude;
         $log['url'] = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $log['oldpayload'] = '';
         $log['request'] = base64_encode(json_encode($post->all()));
         $log['parameters']   = $type;
+        $log['created_at'] = date('Y-m-d H:i:s');
       
         \DB::table('transaction_activitylogs')->insert($log);
         return $next($post);

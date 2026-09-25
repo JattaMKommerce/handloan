@@ -8,7 +8,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Commission extends Model
 {
 	// use LogsActivity;
-    protected $fillable = ['slab', 'type','subadmin', 'whitelable', 'md', 'distributor', 'retailer', 'scheme_id'];
+    protected $fillable = ['slab', 'type','subadmin','apiuser', 'whitelable', 'md', 'distributor', 'retailer', 'scheme_id'];
 
     protected static $logAttributes = ['slab', 'type', 'whitelable', 'md', 'distributor', 'retailer', 'scheme_id'];
     protected static $logOnlyDirty = true;

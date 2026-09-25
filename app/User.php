@@ -19,7 +19,7 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $fillable = ['name','email','mobile','password','remember_token','nsdlwallet','lockedamount','role_id','parent_id','company_id','scheme_id','status','address','shopname','gstin','city','state','pincode','pancard','aadharcard','pancardpic','aadharcardpic','gstpic','profile','kyc','callbackurl','remark','resetpwd','otpverify','otpresend','account','bank','ifsc','bene_id1','apptoken','agntpic','signature','shop_photo','livepic','agentcode'];
+    protected $fillable = ['name','email','mobile','password','remember_token','nsdlwallet','lockedamount','aepslockedamount','role_id','parent_id','company_id','scheme_id','status','address','shopname','gstin','city','state','pincode','pancard','aadharcard','pancardpic','aadharcardpic','gstpic','profile','kyc','callbackurl','remark','resetpwd','otpverify','otpresend','account','bank','ifsc','bene_id1','apptoken','agntpic','signature','shop_photo','livepic','agentcode','amount_limit'];
 
     /**
      * The attributes that should be hidden for arrays.

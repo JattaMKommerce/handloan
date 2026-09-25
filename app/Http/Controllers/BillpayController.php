@@ -9,9 +9,11 @@ use App\Models\Mahaagent;
 use Carbon\Carbon;
 use App\Models\Api;
 use App\User;
-use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
-// use MiladRahimi\Jwt\JwtGenerator;
 use MiladRahimi\Jwt\Generator;
+use MiladRahimi\Jwt\Parser;
+use MiladRahimi\Jwt\Cryptography\Keys\HmacKey;
+use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
+use Stevebauman\Location\Facades\Location;
 
 
 
@@ -22,6 +24,7 @@ class BillpayController extends Controller
     {
         $this->billapi = Api::where('code', 'mhbill')->first();
         $this->api = Api::where('code', 'paysprintbill')->first();
+        $this->rkapi = Api::where('code', 'rking')->first();
     }
 
     public function index(Request $post, $type)
@@ -33,13 +36,13 @@ class BillpayController extends Controller
         $data['type'] = $type;
         $data['providers'] = Provider::where('type', $type)->where('status', "1")->orderBy('name')->get();
 
-        $agent = Mahaagent::where('user_id', \Auth::id())->first();
+        // $agent = Mahaagent::where('user_id', \Auth::id())->first();
 
-        if (!$agent) {
-            return redirect(route('aeps'));
-        }
+        // if (!$agent) {
+        //     return redirect(route('aeps'));
+        // }
         $post['user_id'] = \Auth::id();
-        $data['agent'] = $this->bbpsregistration($post, $agent);
+        //$data['agent'] = $this->bbpsregistration($post, $agent);
         return view('service.billpayment')->with($data);
     }
 
@@ -52,14 +55,26 @@ class BillpayController extends Controller
         $data['type'] = $type;
         $data['providers'] = Provider::where('type', $type)->where('status', "1")->orderBy('name')->get();
 
-        $agent = Mahaagent::where('user_id', \Auth::id())->first();
+        // $agent = Mahaagent::where('user_id', \Auth::id())->first();
 
-        if (!$agent) {
-            return redirect(route('aeps'));
-        }
+        // if (!$agent) {
+        //     return redirect(route('aeps'));
+        // }
         $post['user_id'] = \Auth::id();
         $data['agent'] = $this->bbpsregistration($post, $agent);
         return view('service.bbpsrecharge')->with($data);
+    }
+    
+    public function rkbbps(Request $post)
+    {
+        if (\Myhelper::hasRole('admin') || !\Myhelper::can('billpayment_service')) {
+            abort(403);
+        }
+
+        $data['providers'] = Provider::where('status', "1")->where('mode', 'offline')->orderBy('name')->get();
+
+        $post['user_id'] = \Auth::id();
+        return view('service.rkbbps')->with($data);
     }
 
     public function payment(Request $post)
@@ -89,11 +104,11 @@ class BillpayController extends Controller
             return response()->json(['status' => "Your account has been blocked."], 400);
         }
 
-        $agent = Mahaagent::where('user_id', \Auth::id())->first();
+        // $agent = Mahaagent::where('user_id', \Auth::id())->first();
 
-        if (!$agent->bbps_id) {
-            return response()->json(['status' => "Agent Approval Pending"], 400);
-        }
+        // if (!$agent->bbps_id) {
+        //     return response()->json(['status' => "Agent Approval Pending"], 400);
+        // }
 
         $provider = Provider::where('id', $post->provider_id)->first();
 
@@ -151,7 +166,7 @@ class BillpayController extends Controller
                                 break;
 
                             default:
-                                $url = $provider->api->url . "bill-payment/bill/fetchbill";
+                                $url = $provider->api->url . "/bill-payment/bill/fetchbill";
                                 $parameter = [
                                     "operator" => $provider->recharge4,
                                     "canumber" => $post->number0,
@@ -363,15 +378,17 @@ class BillpayController extends Controller
                     switch ($provider->api->code) {
 
                         case 'paysprintbill':
-                            $gpsdata = geoip($post->ip());
+                            $ip = $post->ip();
+                            $gpsdata = Location::get($ip);
+                            //$gpsdata = geoip($post->ip());
 
                             $parameter = [
                                 "operator" => $provider->recharge4,
                                 "canumber" => $post->number0,
                                 "amount" => $post->amount,
                                 "referenceid" => $post->txnid,
-                                "latitude" => $gpsdata->lat,
-                                "longitude" => $gpsdata->lon,
+                                "latitude" => number_format($gpsdata->latitude, 4),
+                                "longitude" => number_format($gpsdata->longitude, 4),
                                 "mode" => $post->mode,
                                 "bill_fetch" => json_decode($post->TransactionId)
                             ];
@@ -396,7 +413,7 @@ class BillpayController extends Controller
                                     break;
 
                                 default:
-                                    $url = $provider->api->url . "bill-payment/bill/paybill";
+                                    $url = $provider->api->url . "/bill-payment/bill/paybill";
                                     break;
                             }
 
@@ -573,30 +590,260 @@ class BillpayController extends Controller
                 break;
         }
     }
+    
+    
+    public function rkbbpspayment(Request $post){
+        
+    
+        
+         if (\Myhelper::hasRole('admin') || !\Myhelper::can('billpayment_service')) {
+            return response()->json(['status' => "Permission Not Allowed"], 400);
+        }
 
-    public function getToken($uniqueid)
-    {
-        $payload = [
-            "timestamp" => time(),
-            "partnerId" => $this->api->username,
-            "reqid" => $uniqueid
-        ];
+        $rules = array(
+            'provider_id' => 'required|numeric'
+        );
 
+        $validator = \Validator::make($post->all(), $rules);
+        if ($validator->fails()) {
+            foreach ($validator->errors()->messages() as $key => $value) {
+                $error = $value[0];
+            }
+            return response()->json(['status' => $error]);
+        }
 
-        $key = $this->api->password;
-        $signer = new HS256($key);
-        $generator = new Generator($signer);
-        // dd($payload,$key,$generator,$this->api);
-        return ['token' => $generator->generate($payload), 'payload' => $payload];
+        $user = \Auth::user();
+        $post['user_id'] = $user->id;
+
+        if ($user->status != "active") {
+            return response()->json(['status' => "Your account has been blocked."], 400);
+        }
+
+        $provider = Provider::where('id', $post->provider_id)->first();
+        
+
+        if (!$provider) {
+            return response()->json(['status' => "Operator Not Found"], 400);
+        }
+
+        if ($provider->status == 0) {
+            return response()->json(['status' => "Operator Currently Down."], 400);
+        }
+
+        if (!$provider->api || $provider->api->status == 0) {
+            return response()->json(['status' => "Bill Payment Service Currently Down."], 400);
+        }
+        $post['crno'] = "";
+
+          $rules['accountnumber'] = "required";
+
+        $validator = \Validator::make($post->all(), $rules);
+        if ($validator->fails()) {
+            foreach ($validator->errors()->messages() as $key => $value) {
+                $error = $value[0];
+            }
+            return response()->json(['status' => $error]);
+        }
+        
+       
+         $rules['amount'] = "required";
+                $validator = \Validator::make($post->all(), $rules);
+                if ($validator->fails()) {
+                    foreach ($validator->errors()->messages() as $key => $value) {
+                        $error = $value[0];
+                    }
+                    return response()->json(['status' => $error]);
+                }
+
+                if ($post->mode == 'offline') {
+                    if ($provider->recharge3 == "" || $provider->service_id == "") {
+                        return response()->json(['status' => 'Operater code or service_id not mapped for this mode.'], 400);
+                    }
+                }
+                
+                if ($this->pinCheck($post) == "fail") {
+                    return response()->json(['status' => "Transaction Pin is incorrect"], 400);
+                }
+
+                if ($user->mainwallet - $this->mainlocked() < $post->amount) {
+                    return response()->json(['status' => 'Low Balance, Kindly recharge your wallet.'], 400);
+                }
+
+                
+                
+                $previousrecharge = Report::where('number', $post->accountnumber)->where('amount', $post->amount)->where('provider_id', $post->provider_id)->whereBetween('created_at', [Carbon::now()->subMinutes(2)->format('Y-m-d H:i:s'), Carbon::now()->format('Y-m-d H:i:s')])->count();
+                if ($previousrecharge > 0) {
+                    return response()->json(['status' => 'Same Transaction allowed after 2 min.'], 400);
+                }
+
+                $post['profit'] = \Myhelper::getCommission($post->amount, $user->scheme_id, $post->provider_id, $user->role->slug);
+
+                $post['tds'] = 0;
+                if ($post->profit > 0) {
+                    $tdsvalue = $this->calculateGlobalyTDS($post->profit);
+                    $post['tds'] = $tdsvalue;
+                }
+                
+       
+
+                $debit = User::where('id', $user->id)->decrement('mainwallet', $post->amount + $post->tds - $post->profit);
+                //$debit=1;
+                if ($debit) {
+                    do {
+                        $post['txnid'] = \Myhelper::generateUniqueToken();
+                    } while (Report::where("txnid", "=", $post->txnid)->first() instanceof Report);
+
+                    $insert = [
+                        'number'  => $post->accountnumber,
+                        'mobile'  => $user->mobile,
+                        'provider_id' => $provider->id,
+                        'api_id'  => $provider->api->id,
+                        'amount'  => $post->amount,
+                        'profit'  => $post->profit,
+                        'tds'     => $post->tds,
+                        'txnid'   => $post->txnid,
+                        'status'  => 'pending',
+                        'user_id'    => $user->id,
+                        'credit_by'  => $user->id,
+                        'rtype'      => 'main',
+                        'via'        => 'portal',
+                        'balance'    => $user->mainwallet,
+                        'trans_type' => 'debit',
+                        'product'    => 'billpay'
+                    ];
+
+                    $report = Report::create($insert);
+                    
+                  
+                     $url = $provider->api->url."/recharge-request?acc_no=".$provider->api->username."&api_key=".$provider->api->password."&opr_code=".$provider->recharge6."&rech_num=".$post->accountnumber."&amount=".$post->amount."&client_key=".$post->txnid;
+        
+                       if (env('APP_ENV') == "server") {
+                                    $result = \Myhelper::curl($url, "GET", "", [], "yes", "App\Model\Report",$post->txnid);
+                                   
+                                } else {
+                                    $result = [
+                                        'error' => true,
+                                        'response' => ''
+                                    ];
+                                 }
+                                 
+                              $doc=json_encode($result['response']);
+                              if($doc){
+                                   $responseParts = explode(',', json_decode($doc));
+                                   
+                                   if (count($responseParts) === 8) { 
+                                        $status = trim($responseParts[0]);          
+                                        $transno = trim($responseParts[1]);
+                                        $clientkey  = trim($responseParts[2]); 
+                                        $rechno = trim($responseParts[3]); 
+                                        $amount = trim($responseParts[4]);
+                                        $oprcode = trim($responseParts[5]);
+                                        $successoperatorid=trim($responseParts[6]);
+                                        $message=trim($responseParts[7]);
+                                   }
+                                   
+                                   if($status == "received"){
+                                        $update['status'] = "pending";
+                                        $update['payid'] = $transno;
+                                        $update['refno'] = "pending";
+                                   }elseif($status == "success"){
+                                        $update['status'] = "success";
+                                        $update['payid'] = $transno;
+                                        $update['refno'] = $successoperatorid;
+                                       
+                                   }elseif($status == "suspense"){
+                                        $update['status'] = "pending";
+                                        $update['payid'] = $transno;
+                                        $update['refno'] = "pending";
+                                       
+                                   }elseif($status == "failure"){
+                                        $update['status'] = "failed";
+                                        $update['payid'] = $transno;
+                                        $update['refno'] = $message;
+                                   }elseif($status == "error"){
+                                        $update['status'] = "failed";
+                                        $update['payid'] = 'failed';
+                                        $update['refno'] = $message;
+                                   }else{
+                                        $update['status'] = "pending";
+                                        $update['payid'] = "pending";
+                                        $update['refno'] = "pending";
+                                   }
+                                  
+                              }
+                              
+                if($update['status'] == "success" || $update['status'] == "pending"){
+                
+                Report::where('id', $report->id)->update($update);
+                \Myhelper::commission($report);
+            }else{
+               
+                User::where('id', $user->id)->increment('mainwallet', $post->amount + $post->tds - $post->profit);
+                Report::where('id', $report->id)->update($update);
+            }
+            $reportfetch = Report::where('id', $report->id)->first();
+            return response()->json(['status' => $update['status'], 'data' => $reportfetch, 'description' => ''], 200);
+
+                                    
+                }else{
+                 return response()->json(['status' => "failed", "description" => "Something went wrong"], 200);
+        }
     }
 
+    // public function getToken($uniqueid)
+    // {
+    //     $payload = [
+    //         "timestamp" => time(),
+    //         "partnerId" => $this->api->username,
+    //         "reqid" => $uniqueid
+    //     ];
+
+
+    //     $key = $this->api->password;
+    //     $signer = new HS256($key);
+    //     $generator = new Generator($signer);
+    //     // dd($payload,$key,$generator,$this->api);
+    //     return ['token' => $generator->generate($payload), 'payload' => $payload];
+    // }
+    
+    public function getToken($uniqueid)
+    {
+        $payload =  [
+            "timestamp" => time(),
+            "partnerId" => $this->api->username,
+            "reqid"     => $uniqueid
+        ];
+        
+        //$keyString =$this->api->password;
+        $keyString = $this->api->password;
+        
+        if (strlen($keyString) < 32) {
+            throw new \Exception ("Key length is too short. It must be at least 32 characters.");
+        }
+        $key = new HmacKey($keyString);
+    
+        $algorithm = new HS256($key);
+    
+        // Generate a JWT
+        $generator = new Generator($algorithm);
+    
+        try {
+            $jwt = $generator->generate($payload);
+           
+            return ['token' => $jwt, 'payload' => $payload];
+        } catch (\Exception $e) {
+           
+            dd($e->getMessage());
+        }
+         
+    }
     public function paysprintoperator()
     {
 
         $token = $this->getToken(\Auth::id() . Carbon::now()->timestamp);
         //$url='https://api.paysprint.in/api/v1/service//bill-payment/bill/getoperator';
-        $url = 'https://paysprint.in/service-api/api/v1/service/bill-payment/bill/getoperator';
-        $parameter["mode"] = 'offline';
+        $url = $this->api->url.'/bill-payment/bill/getoperator';
+        $parameter["mode"] = 'online';
         $header = array(
             "Cache-Control: no-cache",
             "Content-Type: application/json",
@@ -604,9 +851,9 @@ class BillpayController extends Controller
             "Authorisedkey: " . $this->api->optional1
         );
 
-        $result = \Myhelper::curl($url, "POST", json_encode($parameter), $header, "no");
+        $result = \Myhelper::curl($url, "POST", json_encode($parameter), $header, "yes");
         $doc = json_decode($result['response']);
-        //  dd($result,$url,$header,json_encode($parameter));
+         dd($result,$url,$header,json_encode($parameter));
         $datas = $doc->data;
         //  dd($datas) ;
         foreach ($datas as $data) {

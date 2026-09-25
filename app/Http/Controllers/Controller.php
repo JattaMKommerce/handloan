@@ -31,8 +31,25 @@ class Controller extends BaseController
         }
     }
     
-    
+    public function usermainlocked($id)
+    {
+        $code = \DB::table('users')->where('id', $id)->first(['lockedamount']);
+        if($code){
+           return $code->lockedamount;
+        }else{
+            return 0;
+        }
+    }
 
+    public function useraepslocked($id)
+       {
+         $code = \DB::table('users')->where('id', $id)->first(['aepslockedamount']);
+        if($code){
+           return $code->aepslockedamount;
+        }else{
+            return 0;
+        }
+    }
     public function mainlocked()
     {
         $code = \DB::table('portal_settings')->where('code', 'mainlockedamount')->first(['value']);
@@ -225,5 +242,42 @@ class Controller extends BaseController
         }else{
             return 0;
         }
+    }
+    
+    public function bankpayoutapi($id = null)
+    {
+        $code = \DB::table('users')->where('id',$id)->first();
+        if(!empty($code) && !empty($code->payout_api))
+        {
+            return $code->payout_api;
+        }
+        $code = \DB::table('portal_settings')->where('code', 'banksettlementapi')->first(['value']);
+        if($code){
+           return $code->value;
+        }else{
+            return "manual";
+        }
+    }
+    
+    public function getGeoLocation($ip)
+    {
+        $curl = curl_init();
+
+            curl_setopt_array($curl, array(
+              CURLOPT_URL => 'https://api.ipgeolocation.io/v2/ipgeo?apiKey=578f4d75356f4b608b283714587af93b&ip='.$ip,
+              CURLOPT_RETURNTRANSFER => true,
+              CURLOPT_ENCODING => '',
+              CURLOPT_MAXREDIRS => 10,
+              CURLOPT_TIMEOUT => 0,
+              CURLOPT_FOLLOWLOCATION => true,
+              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+              CURLOPT_CUSTOMREQUEST => 'GET',
+            ));
+            
+            $response = curl_exec($curl);
+            
+            curl_close($curl);
+            
+            return json_decode($response);
     }
 }

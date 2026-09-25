@@ -13,7 +13,7 @@
         </div>
     </div>
 </div> -->
-@if (!Request::is('loanenquiry') && !Request::is('cpayout/*') && !Request::is('flight') && !Request::is('dashboard') && !Request::is('aeps')&& !Request::is('iaeps') && !Request::is('bookflight') && !Request::is('getflight') && !Request::is('bookingStatus') &&  !Request::is('profile/*') && !Request::is('recharge/*') && !Request::is('billpay/*') && !Request::is('pancard/*') && !Request::is('member/*/create') && !Request::is('profile') && !Request::is('profile/*') && !Request::is('dmt') && !Request::is('resources/companyprofile') && !Request::is('aeps/*') && !Request::is('developer/*') && !Request::is('resources/commission') && !Request::is('setup/portalsetting') && !Request::is('pdmt') && !Request::is('raeps/*') && !Request::is('pdmt/*'))
+@if (!Request::is('loanenquiry') && !Request::is('cpayout/*') && !Request::is('flight') && !Request::is('dashboard') && !Request::is('aeps')&& !Request::is('iaeps') && !Request::is('bookflight') && !Request::is('getflight') && !Request::is('bookingStatus') &&  !Request::is('profile/*') && !Request::is('recharge/*') && !Request::is('billpay/*') && !Request::is('pancard/*') && !Request::is('member/*/create') && !Request::is('profile') && !Request::is('profile/*') && !Request::is('dmt')&& !Request::is('ppdmt/*') && !Request::is('resources/companyprofile') && !Request::is('aeps/*') && !Request::is('developer/*') && !Request::is('resources/commission') && !Request::is('setup/portalsetting') && !Request::is('pdmt') && !Request::is('raeps/*') && !Request::is('pdmt/*'))
 <!-- /page header -->
 
 <form class="position-relative" id="searchForm">

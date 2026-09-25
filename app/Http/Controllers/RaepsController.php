@@ -4,18 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Api;
-use App\Models\Report;
 use Carbon\Carbon;
-use App\User;
+use App\Models\User;
 use App\Models\Aepsreport;
 use App\Models\Provider;
 use App\Models\Aepsaccount;
+use App\Models\Report;
 use App\Models\Aepsuser;
 use App\Models\Circle;
 use Illuminate\Validation\Rule;
 
+use MiladRahimi\Jwt\Generator;
+use MiladRahimi\Jwt\Parser;
+use MiladRahimi\Jwt\Cryptography\Keys\HmacKey;
 use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
-use MiladRahimi\Jwt\JwtGenerator;
 use Stevebauman\Location\Facades\Location;
 
 class RaepsController extends Controller
@@ -32,18 +34,57 @@ class RaepsController extends Controller
             abort(403);
         }
 
+        $isdone2fa1 = \DB::table('twostepauths')->where(['user_id'=>\Auth::id(),'date'=>strtotime(date('Y-m-d')),'api'=>'paysprint1'])->first();
+        
+        if($isdone2fa1){
+            $data['isdoneaepsauth1'] = 'true';
+        }else{
+            $data['isdoneaepsauth1'] = 'true';
+        }
+        
+        $isdone2fa2 = \DB::table('twostepauths')->where(['user_id'=>\Auth::id(),'date'=>strtotime(date('Y-m-d')),'api'=>'paysprint2'])->first();
+        
+        if($isdone2fa2){
+            $data['isdoneaepsauth2'] = 'true';
+        }else{
+            $data['isdoneaepsauth2'] = 'true';
+        }       
+      
+      
+        $isdone2fa3 = \DB::table('twostepauths')->where(['user_id'=>\Auth::id(),'date'=>strtotime(date('Y-m-d')),'api'=>'paysprint3'])->first();
+        
+        if($isdone2fa3){
+            $data['isdoneaepsauth3'] = 'true';
+        }else{
+            $data['isdoneaepsauth3'] = 'true';
+        }
+        
+        $isdone2fa5 = \DB::table('twostepauths')->where(['user_id'=>\Auth::id(),'date'=>strtotime(date('Y-m-d')),'api'=>'paysprint5'])->first();
+        
+        if($isdone2fa5){
+            $data['isdoneaepsauth5'] = 'true';
+        }else{
+            $data['isdoneaepsauth5'] = 'false';
+        }
+        
+       
+        
+        $data['stateData'] =  \DB::table('mahastates')->get();
         $data['agent'] = Aepsuser::where('user_id', \Auth::id())->first();
         $data['user'] = \Auth::user();
         $data['mahastate'] = Circle::all();
         $data['bankName'] = \DB::table('fingaepsbanks')->get();
+        
         return view('service.raeps')->with($data);
     }
     
     public function getbank(Request $post){
         $url = "https://api.paysprint.in/api/v1/service/aeps/banklist/index";
         $parameter[] = "";
+        $ip = $post->ip();
+        $gpsdata = Location::get($ip);
+       
         
-        $gpsdata = geoip($post->ip());
         $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
 
          $key = $this->api->optional2;
@@ -55,8 +96,8 @@ class RaepsController extends Controller
          $header = array(
             "Cache-Control: no-cache",
             "Content-Type: application/x-www-form-urlencoded",
-            "Token: ".$token['token'],
-            "Authorisedkey: ".$this->api->optional1 
+            "Token: ".$token['token']
+            // "Authorisedkey: ".$this->api->optional1 
         );
 
         if(env('APP_ENV') == "local"){
@@ -108,12 +149,13 @@ class RaepsController extends Controller
                 return response()->json($validate, 400);
             }
         }
-        $gpsdata = geoip($post->ip());
+        $ip = $post->ip();
+        $gpsdata = Location::get($ip);
         $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
 
         switch ($post->transactionType) {
             case "getbanks":
-                $url = "https://paysprint.in/service-api/api/v1/service/aeps/banklist/index";
+                $url = $this->api->url."aeps/banklist/index";
                 $parameter[] = "";
 
                 $key = $this->api->optional2;
@@ -133,7 +175,7 @@ class RaepsController extends Controller
                 $post['transactionAmount'] = 0;
                 $bank = \DB::table('fingaepsbanks')->where('iinno', $post->bankid)->first();
                 do {
-                    $post['txnid'] = rand(111,9999999999);
+                    $post['txnid'] = \Myhelper::generateAepsUniqueToken();
                 } while (Aepsreport::where("txnid", "=", $post->txnid)->first() instanceof Aepsreport);
                 
                   if($post->transactionType == "MS"){
@@ -168,63 +210,54 @@ class RaepsController extends Controller
                     } catch (\Exception $e) {
                         return response()->json(['status' => "ERR", "message" => "Technical Issue, Try Again"]);
                     }
-                if($post->transactionType == "BE"){
-                    $url = $this->api->url."aeps/balanceenquiry/index";
-                }else{
-                    $url = $this->api->url."aeps/ministatement/index";
+                    
+               if($post->transactionType == "BE"){
+                    
+                    // $url = "https://api.paysprint.in/api/v1/service/aeps/v2/balanceenquiry/index";
+                    $url = "https://sit.paysprint.in/service-api/api/v1/service/aeps/balanceenquiry/index";
+                    
+                } else {
+                    $url="https://sit.paysprint.in/service-api/api/v1/service/aeps/ministatement/index";
+                    // $url = "https://api.paysprint.in/api/v1/service/aeps/v2/ministatement/index";
                 }
-                $parameter['timestamp'] = Carbon::now()->format('d/m/Y h:i:s');
-                $parameter['transactiontype'] = $post->transactionType;
-                $parameter['longitude'] = $gpsdata->lon;
-                $parameter['latitude'] = $gpsdata->lat;
+               
+                $parameter['timestamp'] =  time();
+                $parameter['pannumber'] = $agent->userPan;
+                $parameter['merchant_name'] = $agent->merchantName;
+                $parameter['transcationtype'] = $post->transactionType;
+                $parameter['longitude'] = number_format($gpsdata->longitude, 4);
+                $parameter['latitude'] = number_format($gpsdata->latitude, 4);
                 $parameter['nationalbankidentification'] = $bank->iinno;
                 $parameter['requestremarks'] = "Aeps";
                 $parameter['mobilenumber'] = $post->mobileNumber;
+                $parameter['merchantmobilenumber'] = $agent->merchantPhoneNumber;
                 $parameter['adhaarnumber'] = $post->adhaarNumber;
                 $parameter['data'] = $post->txtPidData;
                 $parameter['referenceno'] = $post->txnid;
                 $parameter['accessmodetype'] = "SITE";
                 $parameter['ipaddress'] = $post->ip();
-                $parameter['pipe'] = "bank1";
+                $parameter['pipe'] = $post->pipe;
                 $parameter['submerchantid'] = $agent->merchantLoginId;
-                $parameter['is_iris'] = false;
-                $key = $this->api->optional2;
-                $iv  = $this->api->optional3;
+                $parameter['address'] = $agent->merchantAddress;
+                $parameter['pincode'] = $agent->merchantPinCode;
+                $parameter['city'] = $agent->merchantCityName;
+                $parameter['statecode'] = $agent->merchantState;
+                  $key = $this->api->optional2;
+                 $iv  = $this->api->optional3;
                 $cipher   = openssl_encrypt(json_encode($parameter,true), 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
                 $request  = base64_encode($cipher);
                 $request  = array('body'=>$request);
-
                 break;
 
             case "CW":
             case "M":
                 $bank = \DB::table('fingaepsbanks')->where('iinno', $post->bankid)->first();
                 do {
-                    $post['txnid'] = $this->transcode().rand(1111111111, 9999999999);
+                    $post['txnid'] = \Myhelper::generateAepsUniqueToken();
                 } while (Aepsreport::where("txnid", "=", $post->txnid)->first() instanceof Aepsreport);
         
                 if($post->transactionType == "CW" || $post->transactionType == "M"){
                     if($post->transactionType == "CW"){
-                        // if($post->transactionAmount > 99 && $post->transactionAmount <= 499){
-                        //     $provider = Provider::where('recharge1', 'aeps1')->first();
-                        // }elseif($post->transactionAmount>499 && $post->transactionAmount<=999){
-                        //     $provider = Provider::where('recharge1', 'aeps2')->first();
-                        // }elseif($post->transactionAmount>999 && $post->transactionAmount<=1499){
-                        //     $provider = Provider::where('recharge1', 'aeps3')->first();
-                        // }elseif($post->transactionAmount>1499 && $post->transactionAmount<=1999){
-                        //     $provider = Provider::where('recharge1', 'aeps4')->first();
-                        // }elseif($post->transactionAmount>1999 && $post->transactionAmount<=2499){
-                        //     $provider = Provider::where('recharge1', 'aeps5')->first();
-                        // }elseif($post->transactionAmount>2499 && $post->transactionAmount<=2999){
-                        //     $provider = Provider::where('recharge1', 'aeps6')->first();
-                        // }elseif($post->transactionAmount>2999 && $post->transactionAmount<=3499){
-                        //     $provider = Provider::where('recharge1', 'aeps7')->first();
-                        // }elseif($post->transactionAmount>3499 && $post->transactionAmount<=7999){
-                        //     $provider = Provider::where('recharge1', 'aeps8')->first();
-                        // }elseif($post->transactionAmount>7999 && $post->transactionAmount<=10000){
-                        //     $provider = Provider::where('recharge1', 'aeps9')->first();
-                        // }
-                        
                         
                         if($post->transactionAmount > 499 && $post->transactionAmount <= 999){
                             $provider = Provider::where('recharge1', 'aeps1')->first();
@@ -297,33 +330,38 @@ class RaepsController extends Controller
                 }
                 
                 if($post->transactionType == "CW"){
-                    $url = $this->api->url."aeps/cashwithdraw/index";
+                    $url = "https://sit.paysprint.in/service-api/api/v1/service/aeps/authcashwithdraw/index";
+                    // $url = 'https://api.paysprint.in/api/v1/service/aeps/v2/cashwithdraw/index';
                     $parameter['transactionType'] = $post->transactionType;
                 }else{
-                    $url = $this->api->url."aadharpay/aadharpay/index";
+                    $url = "https://sit.paysprint.in/service-api/api/v1/service/aadharpay/aadharpay/index";
+                    // $url = $this->api->url."aadharpay/aadharpay/index";
                     $parameter['transactionType'] = $post->transactionType;
                 }
 
-                // do {
-                //     $post['txnid'] = rand(111,9999999999);
-                // } while (Aepsreport::where("txnid", "=", $post->txnid)->first() instanceof Aepsreport);
-                
-                $parameter['timestamp'] = Carbon::now()->format('d/m/Y h:i:s');
-                
-                $parameter['longitude'] = $gpsdata->lon;
-                $parameter['latitude'] = $gpsdata->lat;
+        
+                $parameter['timestamp'] =  time();
+                $parameter['pannumber'] = $agent->userPan;
+                $parameter['merchant_name'] = $agent->merchantName;
+                $parameter['transcationtype'] = $post->transactionType;
+                $parameter['longitude'] = number_format($gpsdata->longitude, 4);
+                $parameter['latitude'] = number_format($gpsdata->latitude, 4);
                 $parameter['nationalbankidentification'] = $bank->iinno;
                 $parameter['requestremarks'] = "Aeps";
                 $parameter['mobilenumber'] = $post->mobileNumber;
+                $parameter['merchantmobilenumber'] = $agent->merchantPhoneNumber;
                 $parameter['adhaarnumber'] = $post->adhaarNumber;
                 $parameter['data'] = $post->txtPidData;
                 $parameter['referenceno'] = $post->txnid;
                 $parameter['accessmodetype'] = "SITE";
-                $parameter['amount'] = $post->transactionAmount;
                 $parameter['ipaddress'] = $post->ip();
-                $parameter['pipe'] = "bank1";
+                $parameter['pipe'] = $post->pipe;
                 $parameter['submerchantid'] = $agent->merchantLoginId;
-                $parameter['is_iris'] = false;
+                $parameter['address'] = $agent->merchantAddress;
+                $parameter['pincode'] = $agent->merchantPinCode;
+                $parameter['city'] = $agent->merchantCityName;
+                $parameter['statecode'] = $agent->merchantState;
+                $parameter['amount'] = $post->transactionAmount;
 
                 $key = $this->api->optional2;
                 $iv  = $this->api->optional3;
@@ -354,7 +392,7 @@ class RaepsController extends Controller
                 ])
             );
         }else{
-            $result = \Myhelper::curl($url, "POST", http_build_query($request), $header, "yes", "App/Model/Aepsreport", $post->txnid);
+            $result = \Myhelper::curl($url, "POST", http_build_query($request), $header, "yes", "App/Models/Aepsreport", $post->txnid);
         }
         
         \DB::table('rp_log')->insert([
@@ -409,35 +447,7 @@ class RaepsController extends Controller
                         if($post->transactionType == "MS"){
                             User::where('id', $user->id)->increment('aepsbalance', $post->charge);
                         }
-                        $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
-                        $url = $this->api->url."aeps/threeway/threeway";
-                        $parameter = [];
-                        $parameter['reference'] = $post->txnid;
-                        $parameter['status']    = "success";
-        
-                        $key = $this->api->optional2;
-                        $iv  = $this->api->optional3;
-                        $cipher   = openssl_encrypt(json_encode($parameter,true), 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
-                        $request  = base64_encode($cipher);
-                        $request  = array('body'=>$request);
                         
-                        
-                        $header = array(
-                            "Cache-Control: no-cache",
-                            "Content-Type: application/json",
-                            "Token: ".$token['token'],
-                             "Authorisedkey: ".$this->api->optional1
-                        );
-                        $result = \Myhelper::curl($url, "POST", json_encode($request), $header, "yes", "App/Model/Aepsreport", $post->txnid);
-                        
-                        \DB::table('rp_log')->insert([
-                            'ServiceName' => $post->transactionType."-ThreeWay",
-                            'header' => json_encode($header),
-                            'body' => json_encode([$parameter, $request]),
-                            'response' => $result['response'],
-                            'url' => $url,
-                            'created_at' => date('Y-m-d H:i:s')
-                        ]);
         
                     }else{
                         $outputdata['statuscode'] = "TXF";
@@ -463,34 +473,7 @@ class RaepsController extends Controller
                             $outputdata['data'] = [];
                         }
                         
-                        $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
-                        $url = $this->api->url."aeps/threeway/threeway";
-                        $parameter = [];
-                        $parameter['reference'] = $post->txnid;
-                        $parameter['status']    = "failed";
-        
-                        $key = $this->api->optional2;
-                        $iv  = $this->api->optional3;
-                        $cipher   = openssl_encrypt(json_encode($parameter,true), 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
-                        $request  = base64_encode($cipher);
-                        $request  = array('body'=>$request);
-                        
-                        $header = array(
-                            "Cache-Control: no-cache",
-                            "Content-Type: application/json",
-                            "Token: ".$token['token'],
-                             "Authorisedkey: ".$this->api->optional1 
-                        );
-                        $result = \Myhelper::curl($url, "POST", json_encode($request), $header, "yes", "App/Model/Aepsreport", $post->txnid);
-                        
-                        \DB::table('rp_log')->insert([
-                            'ServiceName' => $post->transactionType."-ThreeWay",
-                            'header' => json_encode($header),
-                            'body' => json_encode([$parameter, $request]),
-                            'response' => $result['response'],
-                            'url' => $url,
-                            'created_at' => date('Y-m-d H:i:s')
-                        ]);
+                       
                     }
                     return response()->json($outputdata);
                     break;
@@ -552,11 +535,11 @@ class RaepsController extends Controller
                         $header = array(
                             "Cache-Control: no-cache",
                             "Content-Type: application/json",
-                            "Token: ".$token['token'],
-                             "Authorisedkey: ".$this->api->optional1 
+                            "Token: ".$token['token']
+                            //  "Authorisedkey: ".$this->api->optional1 
                         );
                         
-                        $result = \Myhelper::curl($url, "POST", json_encode($request), $header, "yes", "App/Model/Aepsreport", $post->txnid);
+                        $result = \Myhelper::curl($url, "POST", json_encode($request), $header, "yes", "App/Models/Aepsreport", $post->txnid);
                         \DB::table('rp_log')->insert([
                             'ServiceName' => $post->transactionType."-ThreeWay",
                             'header' => json_encode($header),
@@ -604,10 +587,10 @@ class RaepsController extends Controller
                         $header = array(
                             "Cache-Control: no-cache",
                             "Content-Type: application/json",
-                            "Token: ".$token['token'],
-                             "Authorisedkey: ".$this->api->optional1  
+                            "Token: ".$token['token']
+                            //  "Authorisedkey: ".$this->api->optional1  
                         );
-                        $result = \Myhelper::curl($url, "POST", json_encode($request), $header, "yes", "App/Model/Aepsreport", $post->txnid);
+                        $result = \Myhelper::curl($url, "POST", json_encode($request), $header, "yes", "App/Models/Aepsreport", $post->txnid);
                         \DB::table('rp_log')->insert([
                             'ServiceName' => $post->transactionType."-ThreeWay",
                             'header' => json_encode($header),
@@ -643,11 +626,29 @@ class RaepsController extends Controller
             "reqid"     => $uniqueid
         ];
         
-        $key = $this->api->password;
-        $signer = new HS256($key);
-        $generator = new JwtGenerator($signer);
-        return ['token' => $generator->generate($payload), 'payload' => $payload];
-    }
+        //$keyString =$this->api->password;
+        $keyString = "UFMwMDIwMTc3MzE4YWI2ODFlODhiMDNiN2U2Y2MyN2ExYjA1YTFjMQ==";
+        
+        if (strlen($keyString) < 32) {
+            throw new \Exception ("Key length is too short. It must be at least 32 characters.");
+        }
+        $key = new HmacKey($keyString);
+    
+        $algorithm = new HS256($key);
+    
+        // Generate a JWT
+        $generator = new Generator($algorithm);
+    
+        try {
+            $jwt = $generator->generate($payload);
+           
+            return ['token' => $jwt, 'payload' => $payload];
+        } catch (\Exception $e) {
+           
+            dd($e->getMessage());
+        }
+         
+        }
     
     
      public function getTokenUat($uniqueid)
@@ -725,20 +726,20 @@ class RaepsController extends Controller
             return \Response::json($validator->getMessageBag()->toArray(), 422);
         }
         $checkmerchent = Aepsuser :: where( 'user_id' , $user->id)->first();
+       
         $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
-        //$url = $this->api->url."onboard/onboard/getonboardurl";
         if($checkmerchent){
           $parameter['merchantcode'] = $checkmerchent->merchantLoginId ;
           $post['merchantPhoneNumber'] = $checkmerchent->merchantPhoneNumber ;
         }else{
-        $parameter['merchantcode'] = "MB".date('ymd').$user->id;
+        $parameter['merchantcode'] = "MP".date('ymdH').$user->id;
         }
         //dd($checkmerchent,$parameter);
-        $parameter['is_new']    = "0";
+        $parameter['is_new']    = "1";
         $parameter['mobile']    = $post->merchantPhoneNumber;
         $parameter['email']     = $post->merchantEmail;
         $parameter['firm']      = $post->merchantShopname;
-        $parameter['callback']  = url('api/paysprint/agent/onboard/callback');
+        $parameter['callback']  = url('api/paysprint/service/update/callback');
 
         $key = $this->api->optional2;
         $iv  = $this->api->optional3;
@@ -747,13 +748,15 @@ class RaepsController extends Controller
             "Cache-Control: no-cache",
             "Content-Type: application/json",
             "Token: ".$token['token'],
-            "Authorisedkey: ".$this->api->optional1 
+            "Authorisedkey: ".$this->api->optional1
+            
         );
-      
-      // $url = "https://paysprint.in/service-api/api/v1/service/onboard/onboardnew/getonboardurl";
-       $url = "https://api.paysprint.in/api/v1/service/onboard/onboard/getonboardurl";
+        $url = $this->api->url."onboard/onboardnew/getonboardurl";
+        //live ul
+        // $url = $this->api->url."onboard/onboard/getonboardurl";
+        // dd($url);
         $results = \Myhelper::curl($url, "POST", json_encode($parameter), $header, "yes", json_encode($token['payload']), \Auth::id().Carbon::now()->timestamp);
-       // dd($url ,$header ,$parameter, $results);  
+         //dd($results,$url,json_encode($parameter), $header);
         \DB::table('rp_log')->insert([
             'ServiceName' => "Onboard",
             'header' => json_encode($header),
@@ -762,6 +765,7 @@ class RaepsController extends Controller
             'url' => $url,
             'created_at' => date('Y-m-d H:i:s')
         ]);
+        
         $result=trim($results['response']);
           if($result != ''){
             $data = json_decode($result);
@@ -780,6 +784,32 @@ class RaepsController extends Controller
                 return \Redirect::away($data->redirecturl);
             }else{
                 $datas = $data;
+                $isdone2fa1 = \DB::table('twostepauths')->where(['user_id'=>\Auth::id(),'date'=>strtotime(date('Y-m-d')),'api'=>'paysprint1'])->first();
+                
+                if($isdone2fa1){
+                    $data1['isdoneaepsauth1'] = 'true';
+                }else{
+                    $data1['isdoneaepsauth1'] = 'false';
+                }
+                
+                 $isdone2fa2 = \DB::table('twostepauths')->where(['user_id'=>\Auth::id(),'date'=>strtotime(date('Y-m-d')),'api'=>'paysprint2'])->first();
+                
+                if($isdone2fa2){
+                    $data1['isdoneaepsauth2'] = 'true';
+                }else{
+                    $data1['isdoneaepsauth2'] = 'false';
+                }       
+              
+              
+                 $isdone2fa3 = \DB::table('twostepauths')->where(['user_id'=>\Auth::id(),'date'=>strtotime(date('Y-m-d')),'api'=>'paysprint3'])->first();
+                
+                if($isdone2fa3){
+                    $data1['isdoneaepsauth3'] = 'true';
+                }else{
+                    $data1['isdoneaepsauth3'] = 'false';
+                }
+                
+                
                 $data1['agent'] = Aepsuser::where('user_id', \Auth::id())->first();
                 $data1['user']  = \Auth::user();
                 $data1['mahastate'] = Circle::all();
@@ -798,41 +828,9 @@ class RaepsController extends Controller
         $data1['error'] = isset($datas->message)?$datas->message:'null';
         return view('service.raeps')->with($data1);
     }
+    
     public function bankList(Request $post)
     {
-       /* $gpsdata = geoip($post->ip());
-        $token = $this->getToken($post->user_id.Carbon::now()->timestamp);
-
-        
-        $url = "https://paysprint.in/service-api/api/v1/service/payout/payout/add";
-        
-        
-        
-
-        $parameter['bankid'] = 1177;
-        $parameter['merchant_code']  = "R121";
-        $parameter['account']  = "917479108684";
-        $parameter['ifsc']  = "PYTM0123456";
-        $parameter['name']  = "SOURAV";
-        $parameter['account_type']  = "PRIMARY";
-        
-
-        $key = $this->api->optional2;
-        $iv  = $this->api->optional3;
-        $cipher   = openssl_encrypt(json_encode($parameter,true), 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
-        $request  = base64_encode($cipher);
-        $request  = array('body'=>$request);
-        
-         $header = array(
-            "Cache-Control: no-cache",
-            "Content-Type: application/x-www-form-urlencoded",
-            "Token: ".$token['token'],
-            "Authorisedkey:OWU3ZjExYjI1YmVhYjkyMGU5ZWRkMmMxYTVmZTYzOWE="
-        );
-        
-        $result = \Myhelper::curl($url, "POST", http_build_query($request), $header, "yes", "App/Model/Aepsreport", $post->txnid);
-        dd([$url,http_build_query($request), $header,$result]);*/
-        
             $token = $this->getTokenUat($post->user_id.Carbon::now()->timestamp);
                 
                 $parameter['bankid'] = 1177;
@@ -874,6 +872,7 @@ class RaepsController extends Controller
   
     }
     
+ 
     public function fingpay2fa(Request $post)
     {
         
@@ -914,20 +913,22 @@ class RaepsController extends Controller
         //dd($request);
         if($post->bankpipe == 'bank2'){
             if($user->isbank2regauth == 'no'){
-                $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/registration";
-                //$url = "https://paysprint.in/service-api/api/v1/service/aeps/kyc/Twofactorkyc/registration";
+                // $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/registration";
+                $url = "https://sit.paysprint.in/service-api/api/v1/service/aeps/kyc/Twofactorkyc/registration";
             }else{
-              //  $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/authentication";
-                $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/auth_login";
+                
+                $url = "https://sit.paysprint.in/service-api/api/v1/service/aeps/kyc/Twofactorkyc/authentication";
+                // $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/auth_login";
             }
            
         }else{
             
             if($user->isbank1regauth == 'no'){
-                 //$url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/registration";
-                 $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/auth_login";
+                 $url = "https://sit.paysprint.in/service-api/api/v1/service/aeps/kyc/Twofactorkyc/register_agent";
+                //  $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/auth_login";
             }else{
-                $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/auth_login";
+                // $url = "https://api.paysprint.in/api/v1/service/aeps/kyc/Twofactorkyc/auth_login";
+                $url="https://sit.paysprint.in/service-api/api/v1/service/aeps/kyc/Twofactorkyc/auth_login";
             }
            
         }
@@ -937,12 +938,12 @@ class RaepsController extends Controller
         $header = array(
             "Cache-Control: no-cache",
             "Content-Type: application/json",
-            "Token: ".$token['token']
-            // "Authorisedkey: ".$this->api->optional1 
+            "Token: ".$token['token'],
+            "Authorisedkey: ".$this->api->optional1 
         );
         
         $result  = \Myhelper::curl($url, 'POST',json_encode($request), $header, "yes", "authvalidate", $post->txnid);
-//dd($url,json_encode($parameter),$header,$result);
+
         
         $response = json_decode($result['response']);
         
@@ -1036,4 +1037,79 @@ class RaepsController extends Controller
         }
             
     }  
+    
+    
+      public function serActive(Request $post)
+    {
+      
+        $post['user_id'] = \Auth::id();
+        $user = User::where('id', $post->user_id)->first();
+        $agent = Aepsuser::where('user_id', \Auth::id())->first();
+
+        do {
+            $post['txnid'] = $this->transcode().rand(11111111, 99999999);
+        } while (Report::where("txnid", "=", $post->txnid)->first() instanceof Report);
+
+        $ip = $post->ip();
+        $gpsdata = Location::get($ip);
+        
+        $parameter['aadhaar'] = $post->adhaarNumber;
+        // $parameter['piddata'] = $post->mybiodata;
+        $parameter['merchantcode'] = $agent->merchantLoginId;
+        $parameter['dob'] = $post->dob;
+        $parameter['is_casa'] ='0';
+
+        $key = $this->api->optional2;
+        $iv  = $this->api->optional3;
+        $cipher   = openssl_encrypt($post->mybiodata, 'AES-128-CBC', $key, OPENSSL_RAW_DATA, $iv);
+        $parameter['piddata']  = base64_encode($cipher);
+        
+        
+        //dd($request);
+        
+        $url="https://sit.paysprint.in/service-api/api/v1/service/onboard/onboard/activate_merchant";
+
+        $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
+
+        $header = array(
+            "Cache-Control: no-cache",
+            "Content-Type: application/json",
+            "Token: ".$token['token'],
+            "Authorisedkey: ".$this->api->optional1 
+        );
+        
+        $result  = \Myhelper::curl($url, 'POST',json_encode($parameter), $header, "yes", "authvalidate", $post->txnid);
+        
+        // dd($url,json_encode($parameter), $header,$result);
+        $response = json_decode($result['response']);
+        
+        
+        if(isset($response->status) && $response->status == true){
+           
+                // if($user->isbank2regauth == 'no'){
+                //     $checkyser = User::where('id',$user->id)->update(['isbank2regauth'=>'yes']);
+                //     return response()->json(['status' => 'TUP', 'message' =>'Registration 2fa done, continue for authenticatin again']); 
+                // }
+                
+                // $aaray = array();
+                // $aaray['user_id'] = $post->user_id;
+                // $aaray['date'] = strtotime(date('Y-m-d'));
+                // $aaray['api'] = "paysprint2";
+                // $aaray['status'] = "success";
+                
+                // $checkyser = \DB::table('twostepauths')->where(['user_id'=>$post->user_id,'date'=>$aaray['date'],'api'=>'paysprint2'])->first();
+                // if(!$checkyser){
+                //     \DB::table('twostepauths')->insert($aaray);
+                // }
+                
+                return response()->json(['status' => 'TXN', 'message' =>$response->message]);  
+                    
+        
+        }else{
+            return response()->json(['status' => 'ERR', 'message' => isset($response->message) ? $response->message : 'Authentication Failed']);
+        }
+            
+    } 
+    
+    
 }

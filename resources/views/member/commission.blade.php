@@ -16,6 +16,9 @@
                   <thead class="thead-light">
                     <th>Provider</th>
                     <th>Type</th>
+                    @if(Myhelper::hasRole(['admin','apiuser']))
+                    <th>API Partner</th>
+                    @endif
                     @if(Myhelper::hasRole(['admin','whitelable']))
                     <th>Whitelable</th>
                     @endif
@@ -35,6 +38,9 @@
                     <tr>
                         <td>{{ucfirst($comm->provider->name)}}</td>
                         <td>{{ucfirst($comm->type)}}</td>
+                        @if(Myhelper::hasRole('admin','apiuser'))
+                        <td>{{ucfirst($comm->apiuser)}}</td>
+                        @endif
                         @if(Myhelper::hasRole('admin','whitelable'))
                         <td>{{ucfirst($comm->whitelable)}}</td>
                         @endif

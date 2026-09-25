@@ -72,7 +72,7 @@
                 <div class="panel-heading">
                     <h4 class="panel-title">X-DMT Transfer</h4>
                 </div>
-                <form id="serachForm" action="{{route('dmt2pay')}}" method="post">
+                <form id="serachForm" action="{{route('dmt3pay')}}" method="post">
                     {{ csrf_field() }}
                     <input type="hidden" name="type" value="verification">
                     <input type="hidden" id="rname">
@@ -172,7 +172,7 @@
                 <h4 class="modal-title pull-left text-white">Beneficiary Details Please</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
-            <form action="{{route('dmt2pay')}}" method="post" id="beneficiaryForm">
+            <form action="{{route('dmt3pay')}}" method="post" id="beneficiaryForm">
                 <div class="modal-body">
                     {{ csrf_field() }}
                     <input type="hidden" name="rid">
@@ -278,7 +278,7 @@
             <form action="#" method="post" id="transferForm">
                 {{ csrf_field() }}
                 <input type="hidden" name="transactionvia" value="xdmt">
-                <input type="hidden" name="type" value="transfer_otp">
+                <input type="hidden" name="type" value="transfer">
                 <input type="hidden" name="mobile">
                 <input type="hidden" name="name">
                 <input type="hidden" name="benename">
@@ -572,7 +572,7 @@
             $('.userdetails').fadeOut('400');
             $('.transaction').find('tbody').html('');
 
-            $( "#serachForm" ).submit();
+            //$( "#serachForm" ).submit();
         });
 
         $('#print').click(function(){
@@ -727,9 +727,9 @@
                             setVerifyData(data);
                             setBeneData(data);
                         }else if(data.statuscode == "RNF"){
-                            if(data.kyc_url)
+                            if(data.data.kyc_url)
                             {
-                                window.location.href=data.kyc_url;
+                                window.location.href=data.data.kyc_url;
                             }
                             var mobile = form.find('[name="mobile"]').val();
                             $('#registrationModal').find('[name="mobile"]').val(mobile);
@@ -956,7 +956,7 @@
                     preConfirm: () => {
                         return new Promise((resolve) => {
                             $.ajax({
-                                url: "{{route('dmt2pay')}}",
+                                url: "{{route('dmt3pay')}}",
                                 type: "POST",
                                 headers: {
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

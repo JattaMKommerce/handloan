@@ -36,6 +36,7 @@
                         <!--<button type="button" id="fetch" onclick="window.location.reload();" class="btn bg-grey-400 btn-labeled btn-rounded legitRipple btn-lg billfetch" data-loading-text="<b><i class='fa fa-spin fa-spinner'></i></b> Fetching"><b><i class="icon-backward"></i></b>Back</button>-->
                     </div>
                 </form>
+               
             </div>
             <div class="panel userdetails iq-card" style="display:none">
                     <div class="card-body">
@@ -286,6 +287,8 @@
                 <input type="hidden" name="beneid">
                 <input type="hidden" name="stateresp">
                 <div class="modal-body" style="padding-bottom:20px">
+                    <ul class="list-group transactionData p-0">
+                </ul>
                     <div class="panel border-left-lg border-left-success invoice-grid timeline-content">
                         <div class="panel-body">
                             <div class="row">
@@ -360,8 +363,9 @@
         <!-- Modal content-->
         <div class="modal-content">
             <div class="modal-header bg-slate">
+                <h4 class="modal-title">Receipt</h4>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Receipt</h4>
+            
             </div>
             <div class="modal-body">
                 <ul class="list-group transactionData p-0">
@@ -431,7 +435,7 @@
                             <h5 class="text-right">Transfer Amount : <span class="samount"></span></h5>
                         </div>
                     </div>
-                    <p>* As per RBI guideline, maximum charges allowed is 2%.</p>
+                    <p>* As per RBI guideline, maximum charges allowed is 1.2%.</p>
                     <hr>
                 </div>
             </div>
@@ -526,6 +530,12 @@
     .btn-danger{
         padding: 2px 8px;
     }
+    span.label.label-success {
+    color: #fff;
+    background: green;
+    border-radius: 2px;
+    padding: 1px 1px 1px 1px;
+}
 </style>
 @endpush
 
@@ -747,7 +757,7 @@
                         }
                         else if(data.statuscode == "EKYCOTP"){
                             $('#ekycotpForm').find('[name="mobile"]').val(data.data.mobile);
-                            $('#ekycotpForm').find('[name="stateresp"]').val(data.data.stateresp);
+                            $('#ekycotpForm').find('[name="stateresp"]').val(data.data.stateResp);
                             $('#ekycotpForm').find('[name="ekyc_id"]').val(data.data.ekyc_id);
                            $('#EKYCotpModal').modal(); 
                         }
@@ -761,7 +771,83 @@
                 });
             }
         });
+        $( "#beneForm" ).validate({
+            rules: {
+                mobile: {
+                    required: true,
+                    number : true,
+                    minlength:10,
+                    maxlength:10
+                },
+            },
+            messages: {
+                mobile: {
+                    required: "Please enter mobile number",
+                    number: "Mobile number should be numeric",
+                    minlenght: "Mobile number length should be 10 digit",
+                    maxlenght: "Mobile number length should be 10 digit",
+                }
+            },
+            errorElement: "p",
+            errorPlacement: function ( error, element ) {
+                if ( element.prop("tagName").toLowerCase() === "select" ) {
+                    error.insertAfter( element.closest( ".form-group" ).find(".select2") );
+                } else {
+                    error.insertAfter( element );
+                }
+            },
+            submitHandler: function () {
 
+                var form = $('#beneForm');
+                form.ajaxSubmit({
+                    dataType:'json',
+                    beforeSubmit:function(){
+                        form.find('button[type="submit"]').button('loading');
+                        form.find('button[type="submit"]').css('display','none');
+                        form.find('button[type="button"]').css('display','inline-block');
+                    },
+                    success:function(data){
+                        form.find('button[type="submit"]').button('reset');
+                        form.find('button[type="submit"]').css('display','inline-block');
+                            form.find('button[type="button"]').css('display','none');
+                        if(data.statuscode == "TXN"){
+                            setVerifyData(data);
+                            setBeneData(data);
+                        }else if(data.statuscode == "RNF"){
+                            var mobile = form.find('[name="mobile"]').val();
+                            $('#registrationModal').find('[name="mobile"]').val(mobile);
+                            $('#registrationModal').find('[name="stateresp"]').val(data.data.stateresp);
+                            
+                            if(data.data.stateresp != null && data.data.stateresp != "null" ){
+                                $("[name='otp']").closest('.form-group').remove();
+                                $('.otpdata').append(`<div class="form-group col-md-6">
+                                    <label>Otp</label>
+                                    <input type="text" class="form-control" name="otp" required="" placeholder="Enter otp">
+                                </div>`);
+                            }else{
+                                $('#registrationModal').find('[name="otp"]').closest('.form-group').remove();
+                            }
+                            $('#registrationModal').modal();
+                        }
+                        else if(data.statuscode == "EKYC"){
+                           $('#twostepauthmodal').modal(); 
+                        }
+                        else if(data.statuscode == "EKYCOTP"){
+                            $('#ekycotpForm').find('[name="mobile"]').val(data.data.mobile);
+                            $('#ekycotpForm').find('[name="stateresp"]').val(data.data.stateResp);
+                            $('#ekycotpForm').find('[name="ekyc_id"]').val(data.data.ekyc_id);
+                           $('#EKYCotpModal').modal(); 
+                        }
+                        else{
+                            notify(data.message, 'danger', "inline",form);
+                        }
+                    },
+                    error: function(errors) {
+                        showError(errors, form);
+                    }
+                });
+            }
+        });
         $( "#beneficiaryForm" ).validate({
             rules: {
                 ifsc: {
@@ -815,7 +901,8 @@
                             form.find('select').select2().val(null).trigger('change');
                             form.closest('.modal').modal('hide');
                             notify('Beneficiary Successfully Added.', 'success');
-                            $( "#serachForm" ).submit();
+                            // $( "#serachForm" ).submit();
+                            setBeneData(data);
                         }else{
                             notify(data.message, 'danger', "inline", form);
                         }
@@ -927,6 +1014,7 @@
                 var gst_state  = form.find('[name="gst_state"]').val();
                 var pin  = form.find('[name="pin"]').val();
                 var pipe  = form.find('[name="pipe"]').val();
+                var transactionvia  = form.find('[name="transactionvia"]').val();
                 
                 swal({
                     title: 'Are you sure ?',
@@ -965,7 +1053,8 @@
                                     "dob" : dob,
                                     "gst_state" : gst_state,
                                     "pin" : pin,
-                                    'pipe' : pipe
+                                    'pipe' : pipe,
+                                    'transactionvia' : transactionvia
                                 },
                                 beforeSend:function(){
                                     
@@ -989,44 +1078,55 @@
                                 </div>`);
                                     }
                                     else{
-                                    form.find('button[type="submit"]').button('reset');
-                                    form[0].reset();
-                                    getbalance();
-                                    form.closest('.modal').modal('hide');
-                                    $('.totp').html('');
-                                    form.find('[name="type"]').val('send_otp')
-                                    var samount = 0;
-                                    var out ="";
-                                    var tbody = '';
-                                    $.each(data.data , function(index, val){
-                                        if(val.data.statuscode == "TXN" || val.data.statuscode == "TUP"){
-                                            samount += parseFloat(val.amount);
-                                            out += '<li class="list-group-item alert alert-success no-margin mb-10"><strong>Rs.  '+val.amount+'</strong><span class="pull-right">'+val.data.status+'</span></li>';
-                                            tbody += `
-                                                <tr>
-                                                    <td>`+val.data.payid+`</td>
-                                                    <td>`+val.amount+`</td>
-                                                    <td>`+val.data.rrn+`</td>
-                                                    <td>`+val.data.status+`</td>
-                                                </tr>        
-                                            `;
+                                        if(data.status == 'ERR')
+                                    {
+                                        var out ="";
+                                        out += '<li class="list-group-item alert alert-danger no-margin mb-10"><strong>'+data.status+' </strong><span class="pull-right">'+data.message+'</span></li>';
+                                        $('.transactionData').html(out);
+                                    }else
+                                    {
+                                        form.find('button[type="submit"]').button('reset');
+                                        form[0].reset();
+                                        getbalance();
+                                        form.closest('.modal').modal('hide');
+                                        $('.totp').html('');
+                                        //form.find('[name="type"]').val('send_otp')
+                                        var samount = 0;
+                                        var out ="";
+                                        var tbody = '';
+                                        console.log(data);
+                                    
+                                        $.each(data.data , function(index, val){
+                                            if(val.data.statuscode == "TXN" || val.data.statuscode == "TUP"){
+                                                samount += parseFloat(val.amount);
+                                                out += '<li class="list-group-item alert alert-success no-margin mb-10"><strong>Rs.  '+val.amount+'</strong><span class="pull-right">'+val.data.status+'</span></li>';
+                                                tbody += `
+                                                    <tr>
+                                                        <td>`+val.data.payid+`</td>
+                                                        <td>`+val.amount+`</td>
+                                                        <td>`+val.data.rrn+`</td>
+                                                        <td>`+val.data.status+`</td>
+                                                    </tr>        
+                                                `;
+                                            }else{
+                                                out += '<li class="list-group-item alert alert-danger no-margin mb-10"><strong>Rs.  '+val.amount+'</strong><span class="pull-right">'+val.data.status+'</span></li>';
+                                            }
+                                        });
+                                        $('.transactionData').html(out);
+                                        if(samount != 0){
+                                            $('#receptTable').fadeIn('400');                            
+                                            $('.benename').text(benename);
+                                            $('.beneaccount').text(beneaccount);
+                                            $('.benebank').text(bankname);
+                                            $('.benemobile').text(mobile);
+                                            $('#receptTable').find('tbody').html(tbody);
+                                            $('.samount').text(parseFloat(samount));
                                         }else{
-                                            out += '<li class="list-group-item alert alert-danger no-margin mb-10"><strong>Rs.  '+val.amount+'</strong><span class="pull-right">'+val.data.status+'</span></li>';
+                                            $('#receptTable').fadeOut('400');
                                         }
-                                    });
-                                    $('.transactionData').html(out);
-                                    if(samount != 0){
-                                        $('#receptTable').fadeIn('400');                            
-                                        $('.benename').text(benename);
-                                        $('.beneaccount').text(beneaccount);
-                                        $('.benebank').text(bankname);
-                                        $('.benemobile').text(mobile);
-                                        $('#receptTable').find('tbody').html(tbody);
-                                        $('.samount').text(parseFloat(samount));
-                                    }else{
-                                        $('#receptTable').fadeOut('400');
+                                        $('#receipt').modal();
                                     }
-                                    $('#receipt').modal();
+                                    
                                 }
                                 },
                                 error: function(errors){
@@ -1135,7 +1235,10 @@
                         form.find('button[type="submit"]').button('reset');
                         if(data.statuscode == "TXN"){
                             form.closest('.modal').modal('hide');
-                            $('#serachForm').submit();
+                            $('#twostepauthmodal').hide();
+                            // $('#serachForm').submit();
+                            setVerifyData(data);
+                            //setBeneData(data);
                         }else{
                             notify(data.message, 'danger', "inline",form);
                         }
@@ -1169,13 +1272,14 @@
         $('.remainlimit').text( parseInt(data.data.bank3_limit) );
         $('.usedlimit').text( data.data.limit);
         $('[name="mobile"]').val(data.data.mobile);
-        $('[name="name"]').val(data.data.fname);
+        $('[name="name"]').val(data.data.name);
         $('#rname').val(data.name);
         $('#rlimit').val(data.data.bank3_limit);
         $('.userdetails').fadeIn('400');
     }
 
     function setBeneData(data) {
+       
         if(data.benedata.length > 0){
             out = ``;
             $.each(data.benedata , function(index, beneficiary) {
@@ -1199,6 +1303,7 @@
         }else{
             $('.transaction').find('tbody').html('');
         }
+        
     }
 
     function getBankName(mobile, name, benebank, beneaccount, beneifsc, benename) {

@@ -136,6 +136,14 @@ class SettingController extends Controller
                     return response()->json(['status' => "Permission Not Allowed"], 400);
                 }
                 break;
+            case 'lockedamount':
+                $post['lockedamount'] = $post->lockedamount;
+                $post['aepslockedamount'] = $post->aepslockedamount;
+                break;
+            case 'amount_limit' :
+                  
+                 $post['amount_limit'] = $post->amount_limit;
+                 break ;
              case 'kycdata' :
                  $post['kyc'] = "submitted";
                  break ;
@@ -223,12 +231,9 @@ class SettingController extends Controller
                 break;
         }
 
-        
+    //   dd($post->all());
 
         $response = User::where('id', $post->id)->updateOrCreate(['id'=> $post->id], $post->all());
-        $response2 = User::where('id', $post->id)->update(['gender'=> $post->gender]);
-        // dd([$post->all(),$response]);
-
         if($response){
             return response()->json(['status'=>'success'], 200);
         }else{

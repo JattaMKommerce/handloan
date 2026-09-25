@@ -16,9 +16,9 @@ $status['data'] = [
 
 $product['type'] = "Fund Type";
 $product['data'] = [
-"transfer" => "Transfer",
-"return" => "Return",
-"request" => "Request"
+"fund transfer" => "Transfer",
+"fund return" => "Return",
+"fund request" => "Request"
 ];
 @endphp
 
@@ -44,6 +44,14 @@ $product['data'] = [
                             <tbody>
 
                             </tbody>
+                            <tfoot>
+                        <tr>
+                            <th colspan="3" style="text-align:right">Total:</th>
+                            <th id="totalCreditAmount"></th> 
+                            <th></th>
+                            <th></th>
+                       </tr>
+                    </tfoot>
                         </table>
                     </div>
                 </div>
@@ -115,6 +123,106 @@ $product['data'] = [
         ];
 
         datatableSetup(url, options, onDraw);
+        function datatableSetup(urls, datas, onDraw=function () {}, ele="#datatable", element={}) {
+            var options = {
+                dom: '<"datatable-scroll"t><"datatable-footer"ip>',
+                processing: true,
+                serverSide: true,
+                ordering: false,
+                stateSave: true,
+                paging: true,
+                pageLength : 10,
+                searching: false,
+                lengthMenu: [ [10, 25, 50,100,200, -1], [10, 25, 50,100,200, 'All']],
+                dom: 'Blfrtip',
+                columnDefs: [{
+                    orderable: false,
+                    width: '130px',
+                    targets: [ 0 ]
+                }], 
+                language: {
+                    paginate: { 'first': 'First', 'last': 'Last', 'next': '&rarr;', 'previous': '&larr;' }
+                },
+                drawCallback: function () {
+                    $(this).find('tbody tr').slice(-3).find('.dropdown, .btn-group').addClass('dropup');
+                },
+                preDrawCallback: function() {
+                    $(this).find('tbody tr').slice(-3).find('.dropdown, .btn-group').removeClass('dropup');
+                },
+                "footerCallback": function(row, data, start, end, display) {
+                    var api = this.api(),
+                        data;
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function(i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                            i : 0;
+                    };
+
+
+                    // Initialize variables to store debit and credit sums
+                    var debitSum = 0;
+                    var creditSum = 0;
+                    
+                    // Iterate over each row in the DataTable
+                    api.rows().every(function() {
+                        var data = this.data();
+                        // Check if it's a debit transaction
+                        if (data.trans_type === "debit") {
+                            // Add the amount to the debit sum
+                            debitSum += parseFloat(data.amount);
+                        }
+                        // Check if it's a credit transaction
+                        else if (data.trans_type === "credit") {
+                            // Add the amount to the credit sum
+                            //creditSum += parseFloat(data.amount);
+                        }
+                        creditSum += parseFloat(data.amount);
+                    });
+                    
+                    // Update footer for debit column (assuming column index 5 for debit)
+                    //$(api.column(5).footer()).html(debitSum);
+                    
+                    // Update footer for credit column (assuming column index 4 for credit)
+                    $(api.column(3).footer()).html(creditSum);
+                },
+                ajax:{
+                    url : urls,
+                    type: "post",
+                    data:function( d )
+                        {
+                            d._token = $('meta[name="csrf-token"]').attr('content');
+                            d.fromdate = $('#searchForm').find('[name="from_date"]').val();
+                            d.todate = $('#searchForm').find('[name="to_date"]').val();
+                            d.searchtext = $('#searchForm').find('[name="searchtext"]').val();
+                            d.agent = $('#searchForm').find('[name="agent"]').val();
+                            d.status = $('#searchForm').find('[name="status"]').val();
+                            d.product = $('#searchForm').find('[name="product"]').val();
+                        },
+                    beforeSend: function(){
+                    },
+                    complete: function(){
+                        $('#searchForm').find('button:submit').button('reset');
+                        $('#formReset').button('reset');
+                    },
+                    error:function(response) {
+                    }
+                },
+                columns: datas
+            };
+
+            $.each(element, function(index, val) {
+                options[index] = val; 
+            });
+
+            var DT = $(ele).DataTable(options).on('draw.dt', onDraw);
+            return DT;
+        }
+      
+     
+        
+    
     });
 </script>
 @endpush

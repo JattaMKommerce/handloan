@@ -93,7 +93,9 @@ class HomeController extends Controller
             'aeps',
             'matm',
             'commission',
-            'charge'
+            'charge',
+            'cms',
+            'aeps'
         ];
 
         $slot = ['today', 'month', 'lastmonth'];
@@ -137,6 +139,9 @@ class HomeController extends Controller
                 switch ($value) {
                     case 'recharge':
                         $query->where('product', 'recharge');
+                        break;
+                    case 'cms':
+                        $query->where('product', 'cms');
                         break;
 
                     case 'billpayment':
@@ -205,6 +210,9 @@ class HomeController extends Controller
                 switch ($value) {
                     case 'recharge':
                         $query->where('product', 'recharge');
+                        break;
+                    case 'cms':
+                        $query->where('product', 'cms');
                         break;
 
                     case 'billpayment':

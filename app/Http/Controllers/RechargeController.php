@@ -13,9 +13,20 @@ use App\User;
 use Carbon\Carbon;
 use App\Models\Apiswitch;
 use App\Models\Api;
+use MiladRahimi\Jwt\Generator;
+use MiladRahimi\Jwt\Parser;
+use MiladRahimi\Jwt\Cryptography\Keys\HmacKey;
+use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
 
 class RechargeController extends Controller
 {
+    protected $api;
+    public function __construct()
+    {
+        
+        $this->prechargeapi = Api::where('code', '3')->first();
+         
+    }
     public function index($type)
     {
         if (\Myhelper::hasRole('admin') || !\Myhelper::can('recharge_service')) {
@@ -26,7 +37,38 @@ class RechargeController extends Controller
         $data['circles'] = Circle::get();
         return view('service.recharge')->with($data);
     }
-
+    
+    public function getToken($uniqueid)
+    {
+        $payload =  [
+            "timestamp" => time(),
+            "partnerId" => $this->prechargeapi->username,
+            "reqid"     => $uniqueid
+        ];
+        
+        //$keyString = $this->api->password;
+         $keyString = $this->prechargeapi->password;
+        
+        if (strlen($keyString) < 32) {
+            throw new \Exception ("Key length is too short. It must be at least 32 characters.");
+        }
+        $key = new HmacKey($keyString);
+    
+        $algorithm = new HS256($key);
+    
+        // Generate a JWT
+        $generator = new Generator($algorithm);
+    
+        try {
+            $jwt = $generator->generate($payload);
+           //dd($jwt);
+            return ['token' => $jwt, 'payload' => $payload];
+        } catch (\Exception $e) {
+           
+            dd($e->getMessage());
+        }
+         
+    }
     public function payment(\App\Http\Requests\Recharge $post)
     {
         if (\Myhelper::hasRole('admin') || !\Myhelper::can('recharge_service')) {
@@ -145,7 +187,7 @@ class RechargeController extends Controller
                 $post['apiProvider'] = $integrationOperator->codes[$i];
             }
         }
-
+        
         $url = $apiIntegration->baseurl;
         $parameter[$apiIntegration->username] = $apiIntegration->usernameval;
         if ($apiIntegration->password) {
@@ -180,13 +222,25 @@ class RechargeController extends Controller
 
         switch ($apiIntegration->requesttype) {
             case 'json':
-
-                $header = array(
-                    "content-type" => "application/json",
-                    "$apiIntegration->header1" => $apiIntegration->headerval1,
-                    "$apiIntegration->header2" => $apiIntegration->headerval2,
-
-                );
+                if($api->code == 3)
+                {
+                    $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
+                     $header = array(
+                    "Cache-Control: no-cache",
+                    "Content-Type: application/json",
+                    "Token: ".$token['token'],
+                     "Authorisedkey: ODU5ZjE0NWYxYjA3NTQ2ZTE2ZDQyYWQzMzUxMzBmZWY=" 
+                   );
+                }else
+                {
+                    $header = array(
+                        "content-type" => "application/json",
+                        "$apiIntegration->header1" => $apiIntegration->headerval1,
+                        "$apiIntegration->header2" => $apiIntegration->headerval2,
+    
+                    );
+                }
+                
 
 
                 $query = json_encode($parameter);
@@ -383,26 +437,50 @@ class RechargeController extends Controller
             // "secretkey:0209893HCHGDVH002092GUD3330000", //.$apis->password,
             // "saltkey:0002028U3HDFD0298UBCVZZXMBH" //.$apis->username
         );
-
+        
+        //paysprint code
+        $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
+        $header = array(
+            "Cache-Control: no-cache",
+            "Content-Type: application/json",
+            "Token: ".$token['token'],
+            "Authorisedkey: ODU5ZjE0NWYxYjA3NTQ2ZTE2ZDQyYWQzMzUxMzBmZWY="
+        );
+        //end paysprint code
         if ($post->type == "mobile") {
-            $url = "https://www.mplan.in/api/plans.php?apikey=8ade08cd7ef58f22b91cc7027f8078d0&cricle=".urlencode($post->circle)."&operator=".$provider->name;
-            // $parameter['cricle'] = $post->circle;
-            // $parameter['operator'] = $provider->name;
-            $parameter =[];
+            //$url = "https://www.mplan.in/api/plans.php?apikey=8ade08cd7ef58f22b91cc7027f8078d0&cricle=".urlencode($post->circle)."&operator=".$provider->name;
+            
+            //paysprint code
+            $url = "https://api.paysprint.in/api/v1/service/recharge/hlrapi/browseplan";
+            $parameter['circle'] = $post->circle;
+            $parameter['op'] = $provider->name;
+            $method = "POST";
+            //end paysprint code
+            
+            //$parameter =[];
+            //$method = "GET";
         } else {
             $parameter['Operator'] = $provider->name;
-            $url = "https://partners.mahagram.in/rechargesplan/api/PlanAPI/dthplan";
+            //$url = "https://partners.mahagram.in/rechargesplan/api/PlanAPI/dthplan";
+            $url = "https://sit.paysprint.in/service-api/api/v1/service/recharge/hlrapi/dthinfo";
+            $parameter['canumber'] = $post->circle;
+            $parameter['op'] = $provider->name;
+            $method = "POST";
         }
 
 
-        $result = \Myhelper::curl($url, "GET", json_encode($parameter), $header, "yes");
+        $result = \Myhelper::curl($url, $method, json_encode($parameter), $header, "yes");
         //dd($result);
         //  dd(json_encode([$url,$parameter,$header,$result]));
         if ($result['response'] != '') {
             $response = json_decode($result['response']);
             // dd($response);
             if (isset($response->status) && $response->status == 1) {
-                return response()->json(['status' => "success", "data" => $response->records], 200);
+                //Mplan 
+                // return response()->json(['status' => "success", "data" => $response->records], 200);
+                
+                //paysprint
+                return response()->json(['status' => "success", "data" => $response->info], 200);
             }
 
             return response()->json(['status' => "failed", "message" => $response->message ?? "Something went wrong"]);
@@ -616,6 +694,52 @@ class RechargeController extends Controller
             return response()->json(['statuscode' => "ERR", "message" => "Something went wrong1"]);
         } else {
             return response()->json(['statuscode' => "ERR", "message" => "Something went wrong2"]);
+        }
+    }
+    
+    public function getoperator(Request $post)
+    {
+        // $url = "https://api.paysprint.in/api/v1/service/recharge/recharge/recharge/getoperator";
+        $url = "https://api.paysprint.in/api/v1/service/recharge/hlrapi/hlrcheck" ;
+      
+        $parameter = [
+            "number" =>  $post->number, 
+            "type"   =>  $post->type 
+        ];
+
+        $token = $this->getToken(\Auth::id().Carbon::now()->timestamp);
+        $header = array(
+            "Cache-Control: no-cache",
+            "Content-Type: application/json",
+            "Token: ".$token['token'],
+            "Authorisedkey: ODU5ZjE0NWYxYjA3NTQ2ZTE2ZDQyYWQzMzUxMzBmZWY="
+        );
+
+        $query = json_encode($parameter);
+        $method = "POST"; 
+        
+        $result = \Myhelper::curl($url, $method, $query, $header, "no");
+            \DB::table('rp_log')->insert([
+                            'ServiceName' => "Get Oprator",
+                            'header' => json_encode($header),
+                            'body' => json_encode($parameter),
+                            'response' => $result['response'],
+                            'url' => $url,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+        if($result['response'] != ''){
+            $response = json_decode($result['response']);
+            if(isset($response->response_code) && $response->response_code == "1"){
+                $provider = Provider::where('name', 'like', '%'.strtolower($response->info->operator).'%')->where('type', $post->type)->first();
+                //dd($result,$url,$parameter, $provider);
+                return response()->json(['status' => "success", "data" => $provider->id, "circle" => $response->info->circle, "providername" => $response->info->operator], 200);
+            }
+            elseif($response->response_code == "3"){
+              return response()->json(['status' => "failed", "message" => $response->message]);  
+            }
+            
+        }else{
+            return response()->json(['status' => "failed", "message" => "Something went wrongs"]);
         }
     }
 }

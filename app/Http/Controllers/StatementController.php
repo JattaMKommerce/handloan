@@ -336,7 +336,8 @@ class StatementController extends Controller
                 $query->leftJoin('companies', 'companies.id', '=', 'users.company_id');
                 $query->leftJoin('roles', 'roles.id', '=', 'users.role_id');
                 $query->leftJoin('users as parents', 'parents.id', '=', 'users.parent_id');
-                $query->whereIntegerInRaw($table . 'id', $parentData);
+                //$query->whereIntegerInRaw($table . 'id', $parentData);
+                
                 break;
 
             case 'fundrequest':

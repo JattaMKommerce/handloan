@@ -74,12 +74,11 @@ $export = "wallet";
                 "data": "full.username",
                 render: function(data, type, full, meta) {
                     var uid = "{{Auth::id()}}";
-                    if (full.credited_by == uid) {
-                        var name = full.username;
-                    } else {
-                        var name = full.sendername;
+                    if(full.credit_by == full.user_id){
+                         return full.username;
+                    }else{
+                         return full.username;
                     }
-                    return name;
                 }
             },
             {
@@ -166,7 +165,7 @@ $export = "wallet";
                         if (full.trans_type == "credit") {
                             return `<i class="fa fa-inr"></i> ` + (parseFloat(full.balance) + parseFloat(parseFloat(full.amount) + parseFloat(full.charge) - parseFloat(full.profit))).toFixed(2);
                         } else if (full.trans_type == "debit") {
-                            return `<i class="fa fa-inr"></i> ` + (parseFloat(full.balance) - parseFloat(parseFloat(full.amount) + parseFloat(full.charge) - parseFloat(full.profit))).toFixed(2);
+                            return `<i class="fa fa-inr"></i> ` + (parseFloat(full.balance) - parseFloat(parseFloat(full.amount) + parseFloat(full.tds) + parseFloat(full.charge) - parseFloat(full.profit))).toFixed(2);
                         } else if (full.trans_type == "none") {
                             return `<i class="fa fa-inr"></i> ` + (parseFloat(full.balance) - parseFloat(parseFloat(full.amount) + parseFloat(full.charge) - parseFloat(full.profit))).toFixed(2);
                         }

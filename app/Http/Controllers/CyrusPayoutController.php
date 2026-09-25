@@ -781,7 +781,7 @@ class CyrusPayoutController extends Controller
         return "";
     }
 
-    public function bankpayoutapi()
+    public function bankpayoutapi($id = null)
     {
         $code = \DB::table('portal_settings')->where('code', 'settlementapi')->first(['value']);
         if ($code) {

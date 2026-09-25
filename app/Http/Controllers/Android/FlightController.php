@@ -20,11 +20,15 @@ class FlightController extends Controller
     public function __construct()
     {
         $flight_cred = Api::where('code', 'flight')->first();
-        $this->flight_cred['username'] = $flight_cred->username;
-        $this->flight_cred['password'] = $flight_cred->password;
-        $this->flight_cred['url'] = $flight_cred->url;
-        $this->flight_cred['ip'] = $flight_cred->optional1;
-        $this->flight_cred['imei'] = $flight_cred->optional2;
+        if ($flight_cred) {
+            $this->flight_cred['username'] = $flight_cred->username;
+            $this->flight_cred['password'] = $flight_cred->password;
+            $this->flight_cred['url'] = $flight_cred->url;
+            $this->flight_cred['ip'] = $flight_cred->optional1;
+            $this->flight_cred['imei'] = $flight_cred->optional2;
+        } else {
+            $this->flight_cred = ['username' => '', 'password' => '', 'url' => '', 'ip' => '', 'imei' => ''];
+        }
     }
 
     public function flight(Request $request)

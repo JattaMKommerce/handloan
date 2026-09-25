@@ -10,62 +10,71 @@
 <div class="content">
     <div class="row">
         <div class="col-sm-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h4 class="panel-title">Api Tokens</h4>
-                    <div class="heading-elements">
-                        <button type="button" class="btn btn-sm btn-primary" onclick="addSetup()">
+               <div class="iq-card">
+                <div class="iq-card-header d-flex justify-content-between">
+                    <div class="iq-header-title">
+                        <h4 class="card-title">Api Tokens</h4>
+                    </div>
+                    <div>
+                    <button type="button" class="btn btn-sm btn-primary btn-raised heading-btn legitRipple" onclick="addSetup()">
                             <i class="icon-plus2"></i> Add New
                         </button>
                     </div>
                 </div>
-                <table class="table table-striped table-hover mt-20" id="datatable">
-                      <thead class="thead-light">
-                        <tr>
+                <div class="iq-card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="datatable">
+                              <thead class="thead-light">
+                                <tr>
                             <th>IP</th>
                             <th>Token</th>
-                            <th>Domain</th>
                             <th>Action</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-
+        
         <div class="col-sm-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
+            <div class="iq-card">
+                <div class="iq-card-header d-flex justify-content-between">
                     <h4 class="panel-title">Call Back</h4>
                 </div>
+                 <div class="iq-card-body">
                 <form id="callbackForm" action="{{route('profileUpdate')}}" method="post">
                     {{ csrf_field() }}
                     <input type="hidden" name="id" value="{{Auth::user()->id}}">
-                    <div class="panel-body" style="padding:16px">
+                   
                         <div class="form-group">
                             <textarea name="callbackurl" class="form-control" cols="30" rows="3" required placeholder="Enter Callback Url">{{Auth::user()->callbackurl ?? ""}}</textarea>
                         </div>
-                    </div>
-                    <div class="panel-footer">
+                  
                         <button class="btn btn-primary pull-right" type="submit" data-loading-text="<i class='fa fa-spin fa-spinner'></i> Updating...">Update Info</button>
-                    </div>
+
                 </form>
+                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="setupModal" class="modal fade" data-backdrop="false" data-keyboard="false">
-    <div class="modal-dialog modal-sm">
+
+<div id="setupModal" class="modal " role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header ">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title"><span class="msg">Add</span> Bank</h6>
+            <div class="modal-header bg-primary">
+                <button type="button" class="close" data-dismiss="modal" style="margin-top: -17px;">&times;</button>
+                <h6 class="modal-title bgtor"><span class="msg">Add</span> Bank</h6>
             </div>
             <form id="setupManager" action="{{route('apitokenstore')}}" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id">
+                    <input type="hidden" name="type" value="apitoken">
                     {{ csrf_field() }}
                     <div class="form-group">
                         <label>IP</label>
@@ -77,8 +86,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">Close</button>
-                    <button class="btn btn-primary" type="submit" data-loading-text="<i class='fa fa-spin fa-spinner'></i> Submitting">Add Token</button>
+                    <button type="button" class="btn btn-default btn-raised legitRipple" data-dismiss="modal" aria-hidden="true">Close</button>
+                    <button class="btn bg-slate btn-raised legitRipple" type="submit" data-loading-text="<i class='fa fa-spin fa-spinner'></i> Submitting">Add Token</button>
                 </div>
             </form>
         </div><!-- /.modal-content -->
@@ -97,7 +106,6 @@
         var options = [
             { "data" : "ip"},
             { "data" : "token"},
-            { "data" : "domain"},
             { "data" : "action",
                 render:function(data, type, full, meta){
                     return `<button type="button" class="btn bg-danger btn-raised legitRipple btn-xs" onclick="deleteToken(`+full.id+`)"> <i class="fa fa-trash"></i></button>`;

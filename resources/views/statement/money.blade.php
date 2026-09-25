@@ -34,6 +34,7 @@ $status['data'] = [
                                     <th>Refrence Details</th>
                                     <th>Amount/Commission</th>
                                     <th>Opening/Closing</th>
+                                    <th>IP</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -375,6 +376,8 @@ $status['data'] = [
                     return `Amount - <i class="fa fa-inr"></i> ` + full.amount + `<br>Charge - <i class="fa fa-inr"></i> ` + full.charge + `<br>Profit - <i class="fa fa-inr"></i> ` + parseFloat(full.profit + full.gst) + `<br>Gst - <i class="fa fa-inr"></i> ` + full.gst
                 }
             },
+            
+           
             { "data" : "bank",
                        "className":"adjustwidth",
                         render:function(data, type, full, meta){
@@ -393,6 +396,13 @@ $status['data'] = [
                             return `Op Bal - <i class="fa fa-inr"></i> `+full.balance+`<br>Cl Bal - <i class="fa fa-inr"></i> `+closingamt;
                         }
                     },
+                    
+                      {
+                "data": "bank",
+                render: function(data, type, full, meta) {
+                    return  full.ip
+                }
+            },
             {
                 "data": "status",
                 render: function(data, type, full, meta) {
@@ -507,7 +517,7 @@ $status['data'] = [
                 if (type == "none") {
                     if (data.statuscode == "TXN") {
                         $('#otpModal').find('[name="transid"]').val(id);
-                        $('#otpModal').find('[name="stateresp"]').val(data.data.data.stateresp);
+                       
                         $('#otpModal').modal('show');
                     } else {
                         notify(data.message, 'error');

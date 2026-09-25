@@ -108,6 +108,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -132,6 +133,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -182,6 +186,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -206,6 +211,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -255,6 +263,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -279,6 +288,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -330,6 +342,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -354,6 +367,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -407,6 +423,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -431,6 +448,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -481,6 +501,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -505,6 +526,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -556,6 +580,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -580,6 +605,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -628,6 +656,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -652,6 +681,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -701,6 +733,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -725,6 +758,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -778,6 +814,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -802,6 +839,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -847,6 +887,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -863,6 +904,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -913,6 +957,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -937,6 +982,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -986,6 +1034,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -1015,6 +1064,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -1066,6 +1118,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -1090,6 +1143,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -1141,6 +1197,7 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
                             <th>Master Distributor</th>
                             <th>Distributor</th>
@@ -1165,6 +1222,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -1222,8 +1282,8 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
-
                             <th>Master Distributor</th>
                             <th>Distributor</th>
                             <th>Retailer</th>
@@ -1252,6 +1312,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -1303,8 +1366,8 @@ $status['data'] = [
                             @if(Myhelper::hasRole('admin'))
                                 <th>Subadmin</th>
                             @endif
+                            <th>API Partner</th>
                             <th>Whitelable</th>
-
                             <th>Master Distributor</th>
                             <th>Distributor</th>
                             <th>Retailer</th>
@@ -1333,6 +1396,9 @@ $status['data'] = [
                                 <td class="p-t-0 p-b-0">
                                         <input type="number" step="any" name="subadmin[]" placeholder="Enter Value" class="form-control" required="">
                                     </td>
+                                <td class="p-t-0 p-b-0">
+                                    <input type="number" step="any" name="apiuser[]" placeholder="Enter Value" class="form-control" required="">
+                                </td>
                                 <td class="p-t-0 p-b-0">
                                     <input type="number" step="any" name="whitelable[]" placeholder="Enter Value" class="form-control" required="">
                                 </td>
@@ -1628,6 +1694,7 @@ $status['data'] = [
                             @endif
                         }
                         $('#' + modal).find('input[value="' + values.slab + '"]').closest('tr').find('input[name="subadmin[]"]').val(values.subadmin);
+                        $('#' + modal).find('input[value="' + values.slab + '"]').closest('tr').find('input[name="apiuser[]"]').val(values.whitelable);
                         $('#' + modal).find('input[value="' + values.slab + '"]').closest('tr').find('input[name="whitelable[]"]').val(values.whitelable);
                         $('#' + modal).find('input[value="' + values.slab + '"]').closest('tr').find('input[name="md[]"]').val(values.md);
                         $('#' + modal).find('input[value="' + values.slab + '"]').closest('tr').find('input[name="distributor[]"]').val(values.distributor);

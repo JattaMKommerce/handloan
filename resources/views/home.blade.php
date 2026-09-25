@@ -239,19 +239,19 @@
                         </div>
 
                         <div class="product-title">
-                           <h5>MATM</h5>
+                           <h5>CMS</h5>
                         </div>
                      </div>
                      <div class="seperator"></div>
                      <div class="summary_amount">
                         <h5 class="fw-bolder mb-75 successTxn">
-                           <span id="matm_successCount"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="0">0</span></span> | <span id="matm_success"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="₹0">₹ 0</span></span>
+                           <span id="cms_successCount"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="0">0</span></span> | <span id="cms_success"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="₹0">₹ 0</span></span>
                         </h5>
                         <h5 class="fw-bolder mb-75 pendingTxn">
-                           <span id="matm_pendingCount"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="0">0</span></span> | <span id="matm_pending"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="₹0">₹ 0</span></span>
+                           <span id="cms_pendingCount"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="0">0</span></span> | <span id="cms_pending"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="₹0">₹ 0</span></span>
                         </h5>
                         <h5 class="fw-bolder mb-75 text-danger">
-                           <span id="matm_failedCount"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="0">0</span></span> | <span id="matm_failed"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="₹0">₹ 0</span></span>
+                           <span id="cms_failedCount"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="0">0</span></span> | <span id="cms_failed"><span data-bs-toggle="tooltip" data-bs-placement="top" title="" data-bs-original-title="₹0">₹ 0</span></span>
                         </h5>
                      </div>
                   </div>
@@ -953,12 +953,12 @@
                      $(`#money_failed`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.dmt.failed.toFixed(2) + `</span>`);
                      $(`#money_failedCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.dmt.failedCount + `</span>`);
 
-                     $(`#matm_success`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.matm.success.toFixed(2) + `</span>`);
-                     $(`#matm_successCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.matm.successCount + `</span>`);
-                     $(`#matm_pending`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.matm.pending.toFixed(2) + `</span>`);
-                     $(`#matm_pendingCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.matm.pendingCount + `</span>`);
-                     $(`#matm_failed`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.matm.failed.toFixed(2) + `</span>`);
-                     $(`#matm_failedCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.matm.failedCount + `</span>`);
+                     $(`#cms_success`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.cms.success.toFixed(2) + `</span>`);
+                     $(`#cms_successCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.cms.successCount + `</span>`);
+                     $(`#cms_pending`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.cms.pending.toFixed(2) + `</span>`);
+                     $(`#cms_pendingCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.cms.pendingCount + `</span>`);
+                     $(`#cms_failed`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.cms.failed.toFixed(2) + `</span>`);
+                     $(`#cms_failedCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.cms.failedCount + `</span>`);
 
                      $(`#recharge_success`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + '₹' + resp.recharge.success.toFixed(2) + `</span>`);
                      $(`#recharge_successCount`).html(`<span data-bs-toggle="tooltip" data-bs-placement="top" title="">` + resp.recharge.successCount + `</span>`);

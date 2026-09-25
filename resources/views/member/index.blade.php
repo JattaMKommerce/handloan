@@ -233,6 +233,99 @@ break;
     </div>
 </div>
 
+
+<div id="walletLocked" class="modal fade" role="dialog" data-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Set DMT Amount Limit</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                </div>
+                
+                    <div class="modal-body">
+                        
+                        <form class="walletform" method="post" action="{{ route('profileUpdate') }}">
+                            {!! csrf_field() !!}
+                            <input type="hidden" name="actiontype" value="amount_limit">
+                            <input type="hidden" name="id" value="">
+                            <table class="table table-bordered" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <th width="150px">Type</th>
+                                    <th>Value</th>
+                                    <th>Action</th>
+                                </tr>
+                                <tr>
+                                    <td>Amount</td>
+                                    <td>
+                                        <input type="number" name="amount_limit" step="any" class="form-control" placeholder="Enter Value" required="">
+                                    </td>
+                                    <td>
+                                        <button class="btn bg-slate btn-raised legitRipple" type="submit" data-loading-text="<i class='fa fa-spin fa-spinner'></i> Submitting">Submit</button>
+                                    </td>
+                                </tr>
+                                
+                            </table>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        
+                        <button type="button" class="btn btn-default btn-raised legitRipple" data-dismiss="modal" aria-hidden="true">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+<div id="walletLocked1" class="modal fade" role="dialog" data-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Set Wallet Locked Amount</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                </div>
+                
+                    <div class="modal-body">
+                        
+                        <form class="walletform" method="post" action="{{ route('profileUpdate') }}">
+                            {!! csrf_field() !!}
+                            <input type="hidden" name="actiontype" value="lockedamount">
+                            <input type="hidden" name="id" value="">
+                            <table class="table table-bordered" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <th width="150px">Type</th>
+                                    <th>Value</th>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>Main Wallet Amount</td>
+                                    <td>
+                                        <input type="number" name="lockedamount" step="any" class="form-control" placeholder="Enter Value" required="">
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>AEPS Wallet Amount</td>
+                                    <td>
+                                        <input type="number" name="aepslockedamount" step="any" class="form-control" placeholder="Enter Value" required="">
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                   <td>
+                                        <button class="btn bg-slate btn-raised legitRipple" type="submit" data-loading-text="<i class='fa fa-spin fa-spinner'></i> Submitting">Submit</button>
+                                    </td> 
+                                </tr>
+                                
+                            </table>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        
+                        <button type="button" class="btn btn-default btn-raised legitRipple" data-dismiss="modal" aria-hidden="true">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @if (Myhelper::can('member_stock_manager'))
 
 <div class="modal fade" id="idModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -520,9 +613,15 @@ break;
                     @if(Myhelper::can('view_kycpending'))
                     menu += `<a href="{{url('profile/view')}}/` + full.id + `" target="_blank" class="dropdown-item"><i class="icon-user"></i> View Profile</a>`;
                     @endif
+                    menu += `<a href="javascript:void(0)" class="dropdown-item" onclick="generateToken(` + full.id + `)"><i class="fa fa-key"></i> Generate Token</a>`;
 
                     @if(Myhelper::can('member_kyc_update'))
                     menu += `<a href="javascript:void(0)" class="dropdown-item" onclick="kycManage(` + full.id + `, '` + full.kyc + `', '` + full.remark + `')"><i class="icon-cogs"></i> Kyc Manager</a>`;
+                    @endif
+                   
+                    @if (Myhelper::hasRole('admin'))
+                    menu += `<a href="javascript:void(0)" class="dropdown-item" onclick="walletLocked(`+full.id+`,'`+full.amount_limit+`')">Amount Limit</a>`;
+                    menu += `<a href="javascript:void(0)" class="dropdown-item" onclick="walletLocked1(`+full.id+`,'`+full.lockedamount+`','`+full.aepslockedamount+`')">Locked Amount</a>`;
                     @endif
 
                     out += ` <div class="btn-group" role="group">
@@ -771,6 +870,44 @@ break;
             });
             return false;
         });
+        
+         $('form.walletform').submit(function() {
+            var form = $(this);
+            $(this).ajaxSubmit({
+                dataType:'json',
+                beforeSubmit:function(){
+                    form.find('button:submit').button('loading');
+                },
+                complete : function(){
+                    form.find('button:submit').button('reset');
+                },
+                success:function(data){
+                    // form[0].reset();
+                    if(data.status == "success"){
+                        notify('Amount Limit Updated Successfully', 'success');
+                    }else{
+                        notify('Transaction Failed', 'warning');
+                    }
+
+                    $('#datatable').dataTable().api().ajax.reload();
+                },
+                error: function(errors) {
+                    if(errors.status == 422){
+                        $.each(errors.responseJSON, function (index, value) {
+                            form.find('input[name="'+index+'"]').closest('div.form-group').append('<span class="text-danger">'+value[0]+'</span>');
+                        });
+                        setTimeout(function () {
+                            form.find('span.text-danger').remove();
+                        }, 5000);
+                    }else if(errors.status == 400){
+                        notify(errors.responseJSON.status, "Sorry" , 'error');
+                    }else{
+                        notify(errors.statusText, errors.status , 'error');
+                    }
+                }
+            });
+            return false;
+        });
 
         $('form#permissionForm').submit(function() {
             var form = $(this);
@@ -878,6 +1015,21 @@ break;
         $('#idModal').find('input[name="id"]').val(id);
         $('#idModal').modal();
     }
+    
+      function walletLocked(id,amountlimit){
+        
+        $('input[name="amount_limit"]').val(amountlimit)
+        $('input[name="id"]').val(id)
+        $('#walletLocked').modal();
+    }
+    function walletLocked1(id,lockedamount,aepsamount){
+        
+        $('input[name="lockedamount"]').val(lockedamount)
+        $('input[name="aepslockedamount"]').val(aepsamount)
+        
+        $('input[name="id"]').val(id)
+        $('#walletLocked1').modal();
+    }
 
     @if(isset($mydata['schememanager']) && $mydata['schememanager'] -> value == "all")
 
@@ -952,5 +1104,26 @@ break;
         }
     }
     @endif
+    
+    function generateToken(userId) {
+        if (confirm("Are you sure you want to generate a token for this user?")) {
+            $.ajax({
+                url: '{{ url("generate-token") }}',
+                type: 'POST',
+                data: {
+                    user_id: userId,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    notify('Token generated successfully: ' + response.token,'success');
+                },
+                error: function(xhr) {
+                    notify('Error generating token: ' + xhr.responseJSON.message,'warning');
+                }
+            });
+        }
+    }
+
+
 </script>
 @endpush

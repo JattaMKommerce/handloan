@@ -9,7 +9,7 @@ class Report extends Model
 {
     // use LogsActivity;
 
-    protected $fillable = ['number', 'mobile', 'provider_id', 'api_id', 'amount', 'contact_id', 'charge', 'profit', 'gst', 'tds', 'apitxnid', 'txnid', 'payid', 'refno', 'description', 'remark', 'option1', 'option2', 'option3', 'option4', 'status', 'user_id', 'credit_by', 'rtype', 'via', 'adminprofit', 'balance', 'trans_type', 'product', 'wid', 'wprofit', 'mdid', 'mdprofit', 'disid', 'disprofit'];
+    protected $fillable = ['number', 'mobile', 'provider_id', 'api_id', 'amount', 'contact_id', 'charge', 'profit', 'gst', 'tds', 'apitxnid', 'txnid', 'payid', 'refno', 'description', 'remark', 'option1', 'option2', 'option3', 'option4', 'status', 'user_id', 'credit_by', 'rtype', 'via', 'adminprofit', 'balance', 'trans_type', 'product', 'wid', 'wprofit', 'mdid', 'mdprofit', 'disid', 'disprofit','ip'];
 
     protected static $logAttributes = ['number', 'mobile', 'provider_id', 'api_id', 'amount', 'charge', 'profit', 'txnid', 'payid', 'refno', 'remark', 'status', 'user_id', 'credit_by', 'balance', 'trans_type'];
     protected static $logOnlyDirty = true;

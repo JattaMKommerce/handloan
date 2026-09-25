@@ -232,6 +232,7 @@ class ResourceController extends Controller
                         'slab'      => $post->slab[$key],
                         'type'      => $post->type[$key],
                         'subadmin'=> $post->subadmin[$key],
+                        'apiuser'=> $post->apiuser[$key],
                         'whitelable'=> $post->whitelable[$key],
                         'md'        => $post->md[$key],
                         'distributor'  => $post->distributor[$key],

@@ -131,38 +131,22 @@
                     <input type="hidden" name="actiontype" value="raepsid">
                     {{ csrf_field() }}
                     <div class="form-group">
-                        <label>Agent Id</label>
+                        <label>Merchant Id</label>
                         <input type="text" name="merchantLoginId" class="form-control" placeholder="Enter id"  required="" readonly="true">
                     </div>
                     
                     <div class="form-group">
-                        <label> Pin</label>
+                        <label>Merchant Pin</label>
                         <input type="text" name="merchantLoginPin" class="form-control" placeholder="Enter id"  required="" readonly="true">
                     </div>
-                     <div class="form-group">
-                            <label>Select BANK1</label>
-                            <select name="bank1" class="form-control select" id="select" required>
-                                <option value="">Select Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="active">Active</option>
-                              
-                            </select>
-                        </div>
-                       <div class="form-group">
-                            <label>Select BANK2</label>
-                            <select name="bank2" class="form-control select" id="select" required>
-                                <option value="">Select Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="active">Active</option>
-                              
-                            </select>
-                        </div>
+                     
                          <div class="form-group">
-                            <label>Select BANK3</label>
-                            <select name="bank3" class="form-control select" id="select" required>
-                                <option value="">Select Status</option>
+                            <label>Merchant KYC Status</label>
+                            <select name="merchant_status" class="form-control select" id="select" required>
+                                 <option value="">Select Status</option>
                                 <option value="pending">Pending</option>
-                                <option value="active">Active</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
                               
                             </select>
                         </div>
@@ -270,7 +254,7 @@
                     }else{
                         var out = `<span class="badge badge-danger">Rejected</span>`;
                     }
-                    var menu = `<li><a class="dropdown-item" href="javascript:void(0)" onclick="editUtiid(`+full.id+`,'`+full.merchantLoginId+`','`+full.merchantLoginPin+`','`+full.status+`')"><i class="icon-pencil5"></i> Edit</a></li>`;
+                    var menu = `<li><a class="dropdown-item" href="javascript:void(0)" onclick="editUtiid(`+full.id+`,'`+full.merchantLoginId+`','`+full.merchantLoginPin+`','`+full.status+`','`+full.merchant_status+`')"><i class="icon-pencil5"></i> Edit</a></li>`;
                     @if (Myhelper::can('aepsid_statement_edit'))
                     // menu += `<li class="dropdown-header">Setting</li>`;
                     // menu += `<li><a class="dropdown-item" href="javascript:void(0)" onclick="status('`+full.id+`','ragentstatus')""><i class="icon-refresh"></i> Status Bank 1</a></li>`;
@@ -315,11 +299,12 @@
         });
     }
 
-    function editUtiid(id, bbps_agent_id, bbps_id,status){
+    function editUtiid(id, bbps_agent_id, bbps_id,status,merchant_status){
         $('#editModal').find('[name="id"]').val(id);
         $('#editModal').find('[name="merchantLoginId"]').val(bbps_agent_id);
         $('#editModal').find('[name="merchantLoginPin"]').val(bbps_id);
          $('#editModal').find('[name="status"]').select2().val(status).trigger('change');
+         $('#editModal').find('[name="merchant_status"]').select2().val(merchant_status).trigger('change');
         $('#editModal').modal('show');
     }
 </script>

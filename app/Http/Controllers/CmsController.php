@@ -12,8 +12,10 @@ use App\Models\Aepsfundrequest;
 use App\Models\Upiid;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use MiladRahimi\Jwt\Generator;
+use MiladRahimi\Jwt\Parser;
+use MiladRahimi\Jwt\Cryptography\Keys\HmacKey;
 use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
-use MiladRahimi\Jwt\JwtGenerator;
 use GeoIP;
 use Illuminate\Support\Facades\Http;
 
@@ -113,7 +115,21 @@ class CmsController extends Controller
         return response()->json(['statuscode' => "ERR", "message" => isset($response->message) ? $response->message : "Something went wrong"]);
     }
     
-     public function getToken($uniqueid)
+    //  public function getToken($uniqueid)
+    // {
+    //     $payload =  [
+    //         "timestamp" => time(),
+    //         "partnerId" => $this->api->username,
+    //         "reqid"     => $uniqueid
+    //     ];
+        
+    //     $key = $this->api->password;
+    //     $signer = new HS256($key);
+    //     $generator = new JwtGenerator($signer);
+    //     return ['token' => $generator->generate($payload), 'payload' => $payload];
+    // }
+    
+    public function getToken($uniqueid)
     {
         $payload =  [
             "timestamp" => time(),
@@ -121,9 +137,27 @@ class CmsController extends Controller
             "reqid"     => $uniqueid
         ];
         
-        $key = $this->api->password;
-        $signer = new HS256($key);
-        $generator = new JwtGenerator($signer);
-        return ['token' => $generator->generate($payload), 'payload' => $payload];
+        //$keyString = $this->api->password;
+         $keyString = $this->api->password;
+        
+        if (strlen($keyString) < 32) {
+            throw new \Exception ("Key length is too short. It must be at least 32 characters.");
+        }
+        $key = new HmacKey($keyString);
+    
+        $algorithm = new HS256($key);
+    
+        // Generate a JWT
+        $generator = new Generator($algorithm);
+    
+        try {
+            $jwt = $generator->generate($payload);
+           //dd($jwt);
+            return ['token' => $jwt, 'payload' => $payload];
+        } catch (\Exception $e) {
+           
+            dd($e->getMessage());
+        }
+         
     }
 }    

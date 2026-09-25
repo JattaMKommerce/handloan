@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>UjjwalWorlPay</title>
+    <title>Mpay</title>
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{asset('')}}theme/images/favicon.ico" />
     <!-- Bootstrap CSS -->
@@ -85,8 +85,8 @@
 
                                     <div class="sign-info text-center">
                                         <button class="btn btn-primary d-block w-100 mb-2">Sign in</button>
-                                        <span class="text-dark dark-color d-inline-block line-height-2"><b>Don't have an account? <a href="#" data-toggle="modal" data-target="#registerModal">Sign
-                                                    up</a></b></span>
+                                        <!--<span class="text-dark dark-color d-inline-block line-height-2"><b>Don't have an account? <a href="#" data-toggle="modal" data-target="#registerModal">Sign-->
+                                        <!--            up</a></b></span>-->
                                     </div>
                                 </form>
 
@@ -198,7 +198,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="registerForm" action="{{ route('register') }}" method="post">
+                    <form id="registerForm" action="" method="post">
                         {{ csrf_field() }}
 
                         <div class="row">

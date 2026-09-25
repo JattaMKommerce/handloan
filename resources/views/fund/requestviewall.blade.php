@@ -71,7 +71,7 @@ $table = "yes";
                 render: function(data, type, full, meta) {
                     var slip = '';
                     if (full.payslip) {
-                        var slip = `<a target="_blank" href="{{asset('public')}}/deposit_slip/` + full.payslip + `">Pay Slip</a>`
+                        var slip = `<a target="_blank" href="{{asset('')}}/deposit_slip/` + full.payslip + `">Pay Slip</a>`
                     }
                     return `Ref No. - ` + full.ref_no + `<br>Paydate - ` + full.paydate + `<br>Paymode - ` + full.paymode + ` ( ` + slip + ` )`;
                 }

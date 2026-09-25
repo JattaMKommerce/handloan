@@ -18,24 +18,30 @@
 <div class="content">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-					<h4 class="panel-title">Operator List</h4>
-				</div>
-				<div class="panel-body">
-				</div>
-                <table class="table table-bordered table-striped table-hover" id="datatable">
-                      <thead class="thead-light">
-                        <tr>
+             <div class="iq-card">
+                <div class="iq-card-header d-flex justify-content-between">
+                    <div class="iq-header-title">
+                        <h4 class="card-title">Operator List</h4>
+                    </div>
+                    
+                </div>
+                <div class="iq-card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="datatable">
+                              <thead class="thead-light">
+                              <tr>
                             <th>Provider Name</th>
                             <th>Provider Code</th>
                             <th>Type</th>
                             <th>Status</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

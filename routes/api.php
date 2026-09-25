@@ -20,6 +20,12 @@ use App\Http\Controllers\DynamicCallbackController;
 use App\Http\Controllers\Android\ComplaintController;
 use App\Models\Investment;
 use GuzzleHttp\Middleware;
+use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Android\LicBillpayController;
+use App\Http\Controllers\Android\MatmController;
+use App\Http\Controllers\Android\RaepsController;
+use App\Http\Controllers\Android\FingpayController;
+use App\Http\Controllers\PdmtController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +42,10 @@ Route::any('paysprint/agent/onboard', [CallbackController::class, 'paysprintOnbo
 Route::group(['prefix' => 'callback/update'], function () {
   Route::any('{api}', [CallbackController::class, 'callback']);
 });
+Route::group(['prefix'=> 'callback/update/recharge'], function() {
+    Route::any('branchx', [CallbackController::class, 'branchxCallback']);
+    Route::any('{api}', [CallbackController::class, 'recharge']);
+});
 Route::group(['prefix' => 'checkaeps'], function () {
   Route::any('icici/initiate', [AepsController::class, 'iciciaepslog']);
   Route::any('icici/update', [AepsController::class, 'iciciaepslogupdate'])->middleware('transactionlog:aeps');
@@ -45,6 +55,7 @@ Route::group(['prefix' => 'checkaeps'], function () {
 
 Route::any('callback/{type}', [DynamicCallbackController::class,'dynamicCallback']);
 
+Route::any('rkbbps/service/update/callback', [CallbackController::class, 'rkbbps']);
 
 Route::any('paysprint/service/update/callback', [CallbackController::class, 'paysprintcallback']);
 Route::any('runpaisa/callback/runpaisaPg', [CallbackController::class, 'runpaisaPg']);
@@ -94,10 +105,10 @@ Route::post('android/transaction/status', [TransactionController::class, 'transa
 
 /*Recharge Android Api*/
 
-Route::any('android/recharge/providers', 'Android\RechargeController@providersList');
-Route::any('android/recharge/pay', 'Android\RechargeController@transaction');
-Route::post('android/recharge/status', 'Android\RechargeController@statusCheck');
-Route::any('android/recharge/getplan', 'Android\RechargeController@getplan');
+Route::any('android/recharge/providers', [RechargeController::class, 'providersList']);
+Route::any('android/recharge/pay', [RechargeController::class, 'transaction']);
+Route::post('android/recharge/status', [RechargeController::class, 'statusCheck']);
+Route::any('android/recharge/getplan', [RechargeController::class, 'getplan']);
 // Route::any('android/recharge/roffer', 'Android\RechargeController@roffer');
 // Route::any('android/recharge/getoperator', 'Android\RechargeController@operatorinfo');
 // Route::any('android/recharge/getprovider', 'Android\RechargeController@getprovider');
@@ -145,35 +156,35 @@ Route::any('android/aadhar/verify', [UserController::class, 'adharnumberverify']
 
 
 /*LIC Bill Android Api*/
-Route::any('android/licbillpay/transaction', [Android\LicBillpayController::class, 'lictransaction'])->middleware('transactionlog:licbillpay');
-Route::any('android/licbillpay/status', [Android\LicBillpayController::class, 'status']);
+Route::any('android/licbillpay/transaction', [LicBillpayController::class, 'lictransaction'])->middleware('transactionlog:licbillpay');
+Route::any('android/licbillpay/status', [LicBillpayController::class, 'status']);
 
 /*LIC Bill Android Api*/
 
 /* paysprint DMT */
-Route::post('android/pdmt/transaction', [Android\PdmtController::class, 'payment']);
-Route::post('android/pdmt/getbank', [Android\PdmtController::class, 'getbank']);
+Route::post('android/pdmt/transaction', [PdmtController::class, 'payment']);
+Route::post('android/pdmt/getbank', [PdmtController::class, 'getbank']);
 
 //paysprint aeps api for android
-Route::any('android/paysprint/onboard', [Android\RaepsController::class, 'getkyc']);
-Route::any('android/raeps/transaction', [Android\RaepsController::class, 'trasaction']);
-Route::any('android/raeps/getdata', [Android\RaepsController::class, 'getdata']);
-Route::any('android/paysprint/aeps', [Android\RaepfundsController::class, 'trasaction']);
+Route::any('android/paysprint/onboard', [RaepsController::class, 'getkyc']);
+Route::any('android/raeps/transaction', [RaepsController::class, 'trasaction']);
+Route::any('android/raeps/getdata', [RaepsController::class, 'getdata']);
+Route::any('android/paysprint/aeps', [RaepsController::class, 'trasaction']);
 
 
 //Paysprint APIS
-Route::any('android/paysprint/uti', [Android\PancardController::class, 'payment']);
+Route::any('android/paysprint/uti', [PancardController::class, 'payment']);
 Route::any('android/getcommission', [UserController::class, 'getcommission']);
 
-Route::any('android/paysprint/microatm/initiate', [Android\MatmController::class, 'microatmInitiate'])->middleware('transactionlog:matm');
-Route::any('android/paysprint/microatm/update', [Android\MatmController::class, 'microatmUpdate'])->middleware('transactionlog:matm');
+Route::any('android/paysprint/microatm/initiate', [MatmController::class, 'microatmInitiate'])->middleware('transactionlog:matm');
+Route::any('android/paysprint/microatm/update', [MatmController::class, 'microatmUpdate'])->middleware('transactionlog:matm');
 
 //Loan Enquery 
 Route::any('android/loan/enquery', [UserController::class, 'loanenquiery']);
 
 Route::post('android/profile/update', [UserController::class, 'updateprofile']);
 
-Route::any('android/iaeps/transaction', [Android\FingpayController::class, 'transaction'])->middleware('transactionlog:faeps');
+Route::any('android/iaeps/transaction', [FingpayController::class, 'transaction'])->middleware('transactionlog:faeps');
 //Route::any('android/faeps/transaction', 'Android\FingpayController@transaction')->middleware('transactionlog:faeps');
 // Route::group(['prefix' => 'iaeps'], function(){
 //      Route::post('transaction','Api\FingpayController@transaction');
@@ -185,13 +196,12 @@ Route::any('android/iaeps/transaction', [Android\FingpayController::class, 'tran
 // Route::any('android/secure/microatm/initiate', [UserController::class, 'fmicroatmInitiate'])->middleware('transactionlog:fmicroatm');
 // Route::any('android/secure/microatm/update', [UserController::class, 'fmicroatmUpdate'])->middleware('transactionlog:fmicroatmupd');
 
-Route::group(['prefix' => 'iaeps'], function () {
-  //  Route::post('transaction','Android\FingpayController@transaction');
-  Route::post('matm/transaction', [Api\FingpayController::class, 'matmtransaction']);
-  Route::post('matm/transaction/update', [Api\FingpayController::class, 'microatmUpdate']);
-});
+// Route::group(['prefix' => 'iaeps'], function () {
+//   Route::post('matm/transaction', [\App\Http\Controllers\Api\FingpayController::class, 'matmtransaction']);
+//   Route::post('matm/transaction/update', [\App\Http\Controllers\Api\FingpayController::class, 'microatmUpdate']);
+// });
 
-
+Route::post('merchant/bank/payout', [\App\Http\Controllers\Api\AepsController::class, 'banksettlement']);
 
 
 // investment route
@@ -206,7 +216,7 @@ Route::any('android/account/add', [UserController::class, 'addAccount']);
 Route::any('android/tpin/reset', [UserController::class, 'resetTpin']);
 Route::any('android/tpin/check', [UserController::class, 'userpin']);
 
-Route::any('android/faeps/getdata', [Android\FingpayController::class, 'getdata']);
+Route::any('android/faeps/getdata', [FingpayController::class, 'getdata']);
 
 Route::any('android/servicelist', [UserController::class, 'servicelist']);
 
@@ -221,3 +231,10 @@ Route::any('android/payout/accountStatus', [FundController::class, 'bankList']);
 
 Route::post('android/flight', [FlightController::class, 'flight']);
 Route::get('android/get/flight', [FlightController::class, 'getpdf']);
+
+/*User App Apis*/
+
+Route::any('user/register', [App\Http\Controllers\Api\UserController::class, 'registration']);
+Route::any('user/check/balance', [App\Http\Controllers\Api\UserController::class, 'getbalance']);
+Route::any('user/credit/wallet', [App\Http\Controllers\Api\UserController::class, 'creditwallet']);
+Route::any('user/debit/wallet', [App\Http\Controllers\Api\UserController::class, 'debitwallet']);

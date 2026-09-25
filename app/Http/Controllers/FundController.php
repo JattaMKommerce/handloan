@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
 use MiladRahimi\Jwt\JwtGenerator;
+use App\Rules\BarredKeywords;
 
 class FundController extends Controller
 {
@@ -197,9 +198,17 @@ class FundController extends Controller
                     if (\Auth::user()->mainwallet < $post->amount) {
                         return response()->json(['status' => "Insufficient wallet balance."], 400);
                     }
+                    else if((\Auth::user()->mainwallet - $this->usermainlocked(\Auth::user()->id)) < $post->amount)
+                    {
+                        return response()->json(['status' => "Insufficient balance in user wallet."], 400);
+                    }
                 } else {
                     $user = User::where('id', $post->user_id)->first();
                     if ($user->mainwallet < $post->amount) {
+                        return response()->json(['status' => "Insufficient balance in user wallet."], 400);
+                    }
+                    else if(($user->mainwallet - $this->usermainlocked($post->user_id)) < $post->amount)
+                    {
                         return response()->json(['status' => "Insufficient balance in user wallet."], 400);
                     }
                 }
@@ -217,7 +226,7 @@ class FundController extends Controller
                     return response()->json(['status' => "Permission not allowed"], 400);
                 }
                 $rules = array(
-                    'name' => 'required',
+                    'name' => ['required', new BarredKeywords],
                     'bank' => 'required',
                     'account_number' => 'required|numeric',
                     'ifsc' => 'required',
@@ -247,7 +256,7 @@ class FundController extends Controller
                             'name' => $post->name,
                             'doc_upload' => 'pending',
                             'status' => 'success',
-                            'bankname' => $post->name ?? '',
+                            'bankname' => $post->bank ?? '',
                             'bankid' => $post->bankid ?? 0,
                         ]);
                  return response()->json(['statuscode' => 'TXN', 'status' => 'success', 'message' => 'Record added successfully']);
@@ -256,21 +265,46 @@ class FundController extends Controller
                 if (!\Myhelper::can('m2_payout')) {
                     return response()->json(['status' => "Permission not allowed"], 400);
                 }
-                $rules = array(
-                    
-                    'bene_id' => 'required',
-                    'amount' => 'required|numeric|min:10',
-                    'pin' => 'required'
-                );
+                $rules = [
+                            'bene_id' => 'required',
+                            'amount' => [
+                                'required',
+                                'numeric',
+                                'min:100',
+                                function ($attribute, $value, $fail) {
+                                    // Disallowed ranges
+                                    $disallowedRanges = [
+                                        [1001, 1003],
+                                        [2001, 2003], // 2001 to 2003
+                                        [3001, 3003], // 3001 to 3002
+                                        [4001, 4003],
+                                        [5001, 5003],
+                                        [6001, 6003],
+                                        [7001, 7003],
+                                        [8001, 8003],
+                                        [9001, 9003],
+
+                                    ];
+                        
+                                    foreach ($disallowedRanges as $range) {
+                                        if ($value >= $range[0] && $value <= $range[1]) {
+                                            $fail("The $attribute amount ($value) is not allowed.");
+                                        }
+                                    }
+                                },
+                            ],
+                            'pin' => 'required',
+                        ];
 
                 $validator = \Validator::make($post->all(), $rules);
                 if ($validator->fails()) {
                     return response()->json(['errors' => $validator->errors()], 422);
                 }else
                 {
-                    if ($this->pinCheck($post) == "fail") {
-                        //return response()->json(['status' => "Transaction Pin is incorrect"]);
-                    }
+                    //dd('aa');
+                    // if ($this->pinCheck($post) == "fail") {
+                    //     return response()->json(['status' => "Transaction Pin is incorrect"]);
+                    // }
                     $banksettlementtype = $this->banksettlementtype();
                     $impschargeupto25 = $this->impschargeupto25();
                     $impschargeabove25 = $this->impschargeabove25();
@@ -293,21 +327,24 @@ class FundController extends Controller
                     //     $post['charge'] = $impschargeabove25;
                     // }
                     if($post->amount >= 10 && $post->amount <= 1000){
-                        $provider = Provider::where('recharge1', 'xdmt1')->first();
+                        $provider = Provider::where('recharge1', 'kdmt1')->first();
                     }else if($post->amount > 1001 && $post->amount <= 10000){
-                        $provider = Provider::where('recharge1', 'xdmt2')->first();
+                        $provider = Provider::where('recharge1', 'kdmt2')->first();
                     }elseif($post->amount > 10001 && $post->amount <= 25000){
-                        $provider = Provider::where('recharge1', 'xdmt3')->first();
+                        $provider = Provider::where('recharge1', 'kdmt3')->first();
                     }elseif($post->amount > 25001 && $post->amount <= 50000){
-                        $provider = Provider::where('recharge1', 'xdmt4')->first();
+                        $provider = Provider::where('recharge1', 'kdmt4')->first();
                     }else{
-                        $provider = Provider::where('recharge1', 'xdmt5')->first();
+                        $provider = Provider::where('recharge1', 'kdmt5')->first();
                     }
                     
                      $post['provider_id'] = $provider->id;
                      $post['charge'] = \Myhelper::getCommission($post->amount, $user->scheme_id, $post->provider_id, $user->role->slug);
                     if ($user->mainwallet < $post->amount + $post->charge) {
                         return response()->json(['status' => "Low aeps balance to make this request."], 400);
+                    }else if(($user->mainwallet - $this->usermainlocked(\Auth::user()->id)) < $post->amount + $post->charge ){
+                    
+                        return response()->json(['status' => "Low balance to make this request."], 400);
                     }
                     do {
                         $post['payoutid'] = $this->transcode() . rand(111111111111, 999999999999);
@@ -318,6 +355,10 @@ class FundController extends Controller
                     if($previousrecharge)
                     {
                         return response()->json(['status' => "Same Transaction allowed after 5 mins."], 400);
+                    }
+                    $barredKeywordsRule = new BarredKeywords();
+                    if (!$barredKeywordsRule->passes('name', $bene->name)) {
+                        return response()->json(['status' => 'The name contains a barred keyword.'], 400);
                     }
                     if(!empty($bene))
                     {
@@ -342,7 +383,7 @@ class FundController extends Controller
                             'number'    => $post->account??$post->upiid,
                             'mobile'    => $user->mobile,
                             'provider_id' => !empty($provider->id)?$provider->id:'0',
-                            'api_id'    => $this->fundapi->id,
+                            'api_id'    => $provider->api->id,
                             'amount'    => $post->amount,
                             'charge'    => $post->charge,
                             'gst'       => $post->gst??0,
@@ -361,7 +402,8 @@ class FundController extends Controller
                             'trans_type'=> 'debit',
                             'product'   => "dmt",
                             'apitxnid'      => $post->apitxnid,
-                            'create_time'   => Carbon::now()->toDateTimeString()
+                            'create_time'   => Carbon::now()->toDateTimeString(),
+                            'ip' => $post->ip()
                         ];
                         
                         try {
@@ -381,14 +423,15 @@ class FundController extends Controller
                             $request =  [
                                 "token" => $provider->api->username,
                                 "paymode" => "IMPS",
-                                "ip" => "147.79.64.218",
+                                "ip" => "195.250.21.239",
                                 "amount" => $post->amount,
                                 "name" => $bene->name,
                                 "apitxnid" => $post->payoutid,
-                                "callback" => "https://login.ujjwalpayworld.in/api/callbacks/payouts/m2money",
+                                "callback" => "https://login.mpay.club/api/callbacks/payouts/m2money",
                                 "account" => $bene->account,
                                 "ifsc" => $bene->ifsc,
                                 "bank" => $bene->bankname,
+                                "mobile" =>$user->mobile
                                 
                             ];
                             $url = "https://login.m2money.in/api/merchant/bank/payout";
@@ -412,6 +455,21 @@ class FundController extends Controller
                                         'status' => 'success',
                                         'refno'  => !empty($resp->rrn)?$resp->rrn:''
                                     ]);
+                                    
+                                    $fundreport = Report::where('txnid', $post->payoutid)->first();
+                                    $charge = \Myhelper::getCommission($fundreport->amount, $user->scheme_id, $fundreport->provider_id, $user->role->slug);
+                                    $post['gst'] = $this->getGst($fundreport->charge  - $charge);
+                                    User::where('id', $fundreport->user_id)->increment('mainwallet', $fundreport->charge - $charge );
+                                    \Myhelper::commission($fundreport);
+                                    
+                                    
+                                    $transferamount = number_format((float)$fundreport->amount, 2, '.', '');
+                                    $crediteracc = 'XXXX'.substr($fundreport->number, -4);
+                                    $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards MADHAVAM DIGITAL PAYMENTS";
+                                    $send = \Myhelper::sms($fundreport->mobile, $msg);
+                                    if($this->iswpdeliver() == 'ON'){
+                                        $send = \Myhelper::whatsappsms($fundreport->mobile, $msg);
+                                    }
                                     return response()->json(['status' => "success",'message'=>$resp->message], 200);
                                 }
                                 return response()->json(['status' => "success",'message'=>$resp->message], 200);
@@ -831,6 +889,10 @@ class FundController extends Controller
                 }
 
                 if ($user->aepsbalance < $post->amount + $post->charge) {
+                    return response()->json(['status' => "Low aeps balance to make this request."], 400);
+                }
+                else if($user->aepsbalance - $this->useraepslocked(\Auth::user()->id) < $post->amount + $post->charge )
+                {
                     return response()->json(['status' => "Low aeps balance to make this request."], 400);
                 }
 
@@ -1648,17 +1710,26 @@ class FundController extends Controller
             $action = User::where('id', $user->id)->decrement('mainwallet', $post->amount);
             $transferamount = number_format((float)$post->amount, 2, '.', '');
             $debitaccc = 'XXXXXX'.substr($user->mobile, -4); 
-            $msg = "Dear partner, your a/c ".$debitaccc." has been debited with INR ".$transferamount." on ".date('d-m-Y')." Regards Ujjwal Pay World";
+            $msg = "Dear partner, your a/c ".$debitaccc." has been debited with INR ".$transferamount." on ".date('d-m-Y')." Regards MADHAVAM DIGITAL PAYMENTS";
             $send = \Myhelper::sms($user->mobile, $msg);
              
             if($this->iswpdeliver() == 'ON'){
                 $send = \Myhelper::whatsappsms($user->mobile, $msg);
             }
+            $user_rec = User::where('id', $payee)->first();
+            $crediteracc = 'XXXXXX'.substr($user_rec->mobile, -4);
+            $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards MADHAVAM DIGITAL PAYMENTS";
+            $send = \Myhelper::sms($user_rec->mobile, $msg);
+             
+            if($this->iswpdeliver() == 'ON'){
+                $send = \Myhelper::whatsappsms($user_rec->mobile, $msg);
+            }
+            
         } else {
             $action = User::where('id', $user->id)->increment('mainwallet', $post->amount);
             $transferamount = number_format((float)$post->amount, 2, '.', '');
             $crediteracc = 'XXXXXX'.substr($user->mobile, -4);
-            $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards Ujjwal Pay World";
+            $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards MADHAVAM DIGITAL PAYMENTS";
             $send = \Myhelper::sms($user->mobile, $msg);
              
             if($this->iswpdeliver() == 'ON'){
@@ -1939,6 +2010,15 @@ class FundController extends Controller
             return $response['data']->data->token;
         }
         return "";
+    }
+    
+    public function getGst($amount)
+    {
+        return $amount*18/100;
+    }
+    public function getTds($amount)
+    {
+        return $amount*5/100;
     }
 
 }

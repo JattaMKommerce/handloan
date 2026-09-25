@@ -60,7 +60,7 @@ class PdmtController extends Controller
         $data['is_agent'] = $is_agent;
         $data['banks'] = \DB::table('dmtbanks')->get();
         $data['state'] = \DB::table('circles')->get();
-        return view('service.xdmt')->with($data);
+        return view('service.bxdmt')->with($data);
     }
     public function payment(Request $post)
     {
@@ -122,6 +122,10 @@ class PdmtController extends Controller
             case 'getbeneficiary':
                 $rules = array('user_id' => 'required|numeric','mobile' => 'required|numeric');
             break;
+            case 'refund_otp':
+            
+                $rules = array('referenceid' => 'required');
+            break;
             case 'beniverification':
                  $rules = array('user_id' => 'required|numeric','mobile' => 'required|numeric','beneid' => 'required|numeric');
              break ;
@@ -166,11 +170,19 @@ class PdmtController extends Controller
             break;
 
             case 'transfer':
-                $rules = array('user_id' => 'required|numeric','otp'=>'required','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:100|max:25000');
+                
+                if($post->transactionvia == 'dmt')
+                {
+                   $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:100|max:1000'); 
+                }else
+                {
+                    $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:1001|max:75000');
+                }
+                
             break;
             
             case 'send_otp':
-                $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:100|max:25000');
+                $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:100|max:1000');
             break;
             
             case 'refundotp':
@@ -206,11 +218,31 @@ class PdmtController extends Controller
                
                 $url = $this->api->url."kyc/remitter/queryremitter";
                 $parameters = [
-                    "bank3_flag" => "no",
-                    "mobile"     => $post->mobile
+                   
+                     "mobile"     => $post->mobile
                 ];
 
                 break;
+                
+            case 'refund_otp':
+             
+                $url = $this->api->url."kyc/refund/refund/resendotp";
+                $parameters = [
+                   
+                   
+                    "referenceid"     => 'MP3679615337',
+                    "ackno"     => $post->ackno
+                ];
+               
+              $header = array(
+                "Cache-Control: no-cache",
+                "Content-Type: application/json",
+                "Token: ".$token['token'],
+                "Authorisedkey: ".$this->api->optional1
+              ); 
+            $result = \Myhelper::curl($url, "POST", json_encode($parameters), $header, "yes", 'App\Models\Report', $post->txnid);
+            dd($result,json_encode($parameters),$header,$url);
+                break;    
                 
             case 'KYC':
                 $post['amount'] = 1;
@@ -220,14 +252,14 @@ class PdmtController extends Controller
                 if($userdata->mainwallet < $post->amount + $post->charge){
                     return response()->json(["statuscode" => "IWB", 'status'=>'Low balance, kindly recharge your wallet.', 'message' => 'Low balance, kindly recharge your wallet.'], 400);
                 }
-                $url="https://api.paysprint.in/api/v1/service/dmt/kyc/remitter/queryremitter/kyc";
+                $url=$this->api->url."kyc/remitter/queryremitter/kyc";
                 $geodata = Location::get($post->ip());
                 $biodata       =  str_replace("&lt;","<",str_replace("&gt;",">",$post->mybiodata));
                 $xml           =  simplexml_load_string($biodata);
                 $skeyci        =  (string)$xml->Skey['ci'][0];
                 $headerarray   =  json_decode(json_encode((array)$xml), TRUE);
-                $key = "2157b06367dc5a0c";
-                $iv  = "75ce455527f148fb";
+                $key = "46da7ab24acad24b";
+                $iv  = "0e7e87fb7a5a4ada";
                 $ciphertext_raw = openssl_encrypt($post->mybiodata, "AES-128-CBC", $key, $options=OPENSSL_RAW_DATA, $iv);
                 $enctoken = base64_encode($ciphertext_raw);
          
@@ -283,7 +315,7 @@ class PdmtController extends Controller
                 break;
                 
             case "ekycotp":
-                $url = "https://api.paysprint.in/api/v1/service/dmt/kyc/remitter/registerremitter";
+                $url = $this->api->url."kyc/remitter/registerremitter";
                 $parameters = [
                    
                     "mobile"     => $post->mobile,
@@ -349,7 +381,7 @@ class PdmtController extends Controller
                 } while (Report::where("txnid", "=", $post->txnid)->first() instanceof Report);
                 
                // $url = "https://api.verifya2z.com/api/v1/verification/penny_drop_v2";
-                $url="https://api.paysprint.in/api/v1/service/dmt/kyc/beneficiary/registerbeneficiary/benenameverify";
+                $url=$this->api->url."kyc/beneficiary/registerbeneficiary/benenameverify";
                 //$url = "https://api.paysprint.in/api/v1/service/dmt/beneficiary/registerbeneficiary/benenameverify";
                
                 // $parameters = [
@@ -358,7 +390,7 @@ class PdmtController extends Controller
                 //     "ifsc_code"        => $post->beneifsc
                 // ];
                 $parameters = [
-                    "mobile"     => $post->mobile,
+                    "mobile"     => '9310123730',
                     "accno"      => $post->beneaccount,
                     "bankid"     => $post->benebank,
                     "benename"   => $post->benename,
@@ -373,10 +405,14 @@ class PdmtController extends Controller
                 break;
             
             case 'transfer':
-    
+                // $userdata = User::where('id', $post->user_id)->first();
                 if ($this->pinCheck($post) == "fail") {
-                   return response()->json(["statuscode" => "ERR", 'message' => "Transaction Pin is incorrect"],400);
+                   //return response()->json(["statuscode" => "ERR", 'message' => "Transaction Pin is incorrect"],400);
                 }
+                
+                // if($post->amount > $userdata->amount_limit){
+                //      return response()->json(["statuscode" => "ERR", 'message' => "Your transaction limit amount is +$userdata->amount_limit+ per transaction"],400);
+                // }
                 return $this->transfer($post);
                 break;
                 
@@ -384,7 +420,7 @@ class PdmtController extends Controller
     
                $userdata = User::where('id', $post->user_id)->first();
        
-        $url = $url = "https://api.paysprint.in/api/v1/service/dmt/kyc/transact/transact/send_otp";
+       $url = $this->api->url."kyc/transact/transact/send_otp";
          do {
             $post['referenceid'] = rand('11111111','99999999');
         } while (Report::where("txnid", "=", $post->referenceid)->first() instanceof Report);
@@ -399,7 +435,7 @@ class PdmtController extends Controller
             "pincode"    =>  $userdata->pincode ?? '110005',
             "address"    => $post->address ??  $userdata->address,
             "dob"        => $post->dob ?? date("d-m")."-".rand(1980, 2000) ,
-            "gst_state"  => "09" ?? $post->gst_state,
+            "gst_state"  => "07" ?? $post->gst_state,
             "lat"  => $geodata->latitude,
             "long"  => $geodata->longitude,
         );
@@ -407,6 +443,7 @@ class PdmtController extends Controller
                 
             case 'refundotp':
                 $report = Report::where('id', $post->id)->first();
+               
                 if($report && $report->status != "refund"  && $report->status != "reversed"){
                     //return response()->json(["statuscode" => "ERR", 'message'=>'Money Refund Not Allowed']);
                 }
@@ -518,6 +555,10 @@ class PdmtController extends Controller
             case 'outletotp':
                 $rules = array('user_id' => 'required|numeric','mobile' => 'required|numeric');
             break;
+            case 'refund_otp':
+            
+                $rules = array('referenceid' => 'required');
+            break;
 
             case 'outletregister':
                 $rules = array('user_id' => 'required|numeric','merchantPhoneNumber' => 'required|numeric','merchantName' => 'required','merchantState' => 'required','merchantEmail' => 'required', 'userPan' => 'required', 'merchantAddress' => 'required', 'otp' => 'required');
@@ -560,11 +601,11 @@ class PdmtController extends Controller
             break;
 
             case 'transfer':
-                $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:10|max:25000');
+                $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:100|max:2000');
             break;
             
              case 'send_otp':
-                $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:10|max:25000');
+                $rules = array('user_id' => 'required|numeric','name' => 'required','mobile' => 'required|numeric|digits:10', 'benebank' => 'required', 'beneifsc' => "required", 'beneaccount' => "required|numeric|digits_between:6,20","benename" => "required",'amount' => 'required|numeric|min:100|max:2000');
             break;
 
             default:
@@ -590,23 +631,32 @@ class PdmtController extends Controller
 
     public function transfer($post)
     {   
+    
         $userdata = User::where('id', $post->user_id)->first();
         $agents = \DB::table('dmt_agents')->where('user_id',\Auth::id())->first();
-        if(empty($agents))
-        {
-            return response()->json(['statuscode' => 'ERR', 'message' => "Agent not registered"],400);
-        }
+        // if(empty($agents))
+        // {
+        //     return response()->json(['statuscode' => 'ERR', 'message' => "Agent not registered"],400);
+        // }
         //dd($post->transactionvia);
+        $geodata = Location::get($post->ip());
         if($post->transactionvia == 'dmt'){
-            $url = $url = $this->api->url."transact/transact/index";
+          $url = $this->api->url."kyc/transact/transact";
             $parameters = array(
-                'merchant_code' => $agents->merchant_code,
+                
                 'mobile'=> $post->mobile,
                 
                 'bene_id'  => $post->beneid,
                 'txntype'  => $post->mode ?? "IMPS",
                 'otp' => $post->otp,
-                'stateresp' => $post->stateresp
+                'stateresp' => $post->stateresp,
+                "pincode"    =>  $userdata->pincode ?? '110005',
+            "address"    => $post->address ??  $userdata->address,
+            "dob"        => $post->dob ?? date("d-m")."-".rand(1980, 2000) ,
+            "gst_state"  => "07" ?? $post->gst_state,
+            "lat"  => $geodata->latitude,
+            "long"  => $geodata->longitude,
+            "otp"  => $post->otp,
                 
             );
     
@@ -622,18 +672,25 @@ class PdmtController extends Controller
             //         break;
             //     }
             // }
-            $n=1;
-            $amounts = array_fill(0,$n,$post->amount);
-            if(isset($x)){
-                array_push($amounts , $x);
-            }
+            
    // dd($amounts);
-            foreach ($amounts as $amount) {
+           
                 $outputs['statuscode'] = "TXN";
                 $post['amount'] = $amount;
                 $user = User::where('id', $post->user_id)->first();
                 $post['charge'] = $this->getCharge($post->amount);
                 if($user->mainwallet < $post->amount + $post->charge){
+                    $outputs['data'][] = array(
+                        'amount' => $amount,
+                        'status' => 'TXF',
+                        'data'   => [
+                            "statuscode" => "TXF",
+                            "status" => "Insufficient Wallet Balance",
+                            "message" => "Insufficient Wallet Balance",
+                        ]
+                    );
+                }else if(($user->mainwallet - $this->usermainlocked($post->user_id)) < $post->amount + $post->charge ){
+                    
                     $outputs['data'][] = array(
                         'amount' => $amount,
                         'status' => 'TXF',
@@ -661,7 +718,7 @@ class PdmtController extends Controller
                     }else{
                         $provider = Provider::where('recharge1', 'dmt5')->first();
                     }
-                    
+                    //dd($provider->api->code);
                     $post['provider_id'] = $provider->id;
                     $post['service'] = $provider->type;
                     $insert = [
@@ -682,7 +739,8 @@ class PdmtController extends Controller
                         'product' => 'dmt',
                         'balance' => $user->mainwallet,
                         'description' => $post->benemobile,
-                        'trans_type' => 'debit'
+                        'trans_type' => 'debit',
+                        'ip' => $post->ip()
                     ];
                     
                     $previousrecharge = Report::where('number', $post->beneaccount)->where('amount', $post->amount)->where('provider_id', $post->provider_id)->whereBetween('created_at', [Carbon::now()->subSeconds(1)->format('Y-m-d H:i:s'), Carbon::now()->addSeconds(1)->format('Y-m-d H:i:s')])->count();
@@ -716,14 +774,17 @@ class PdmtController extends Controller
                                             "Authorisedkey: ".$this->api->optional1
                                         );
                 
-                                        if (env('APP_ENV') == "server") {
+                                        
                                             $result = \Myhelper::curl($url, "POST", json_encode($parameters), $header, "yes", 'App\Models\Report', $post->txnid);
-                                        }else{
-                                            $result = [
-                                                'error' => true,
-                                                'response' => '' 
-                                            ];
-                                        }
+                                                        \DB::table('rp_log')->insert([
+                                                        'ServiceName' => $post->type,
+                                                        'header' => json_encode($header),
+                                                        'body' => json_encode($parameters),
+                                                        'response' => $result['response'],
+                                                        'url' => $url,
+                                                        'created_at' => date('Y-m-d H:i:s')
+                                                      ]);
+                                        
                                         break;
                                     case 'm2payout':
                                         
@@ -731,7 +792,7 @@ class PdmtController extends Controller
                                         
                                         $parameter = [
                                             "token" => $provider->api->username,
-                                            "paymode" => "IMPS",
+                                            "paymode" => strtoupper($post->mode),
                                             "ip" => "195.250.21.239",
                                             "amount" => $post->amount,
                                             "name" => $post->benename,
@@ -739,7 +800,8 @@ class PdmtController extends Controller
                                             "callback" => "https://login.ujjwalpayworld.in/api/callbacks/payouts/m2money",
                                             "account" => $post->beneaccount,
                                             "ifsc" => $post->beneifsc,
-                                            "bank" => $post->benebank
+                                            "bank" => $post->benebank,
+                                            "mobile" => $post->mobile
                                         ];
                                          $header = array(
                                             "Cache-Control: no-cache",
@@ -770,6 +832,20 @@ class PdmtController extends Controller
                                                 'status'=> 'success',
                                                 'refno' => (isset($response->rrn))? $response->rrn : 'failed'
                                             ]);
+                                            $fundreport = Report::where('txnid', $post->txnid)->first();
+                                            $charge = \Myhelper::getCommission($fundreport->amount, $user->scheme_id, $fundreport->provider_id, $user->role->slug);
+                                            $post['gst'] = $this->getGst($fundreport->charge  - $charge);
+                                            User::where('id', $fundreport->user_id)->increment('mainwallet', $fundreport->charge - $charge );
+                                            \Myhelper::commission($fundreport);
+                                            
+                                            
+                                            $transferamount = number_format((float)$fundreport->amount, 2, '.', '');
+                                            $crediteracc = 'XXXX'.substr($fundreport->number, -4);
+                                            $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards Ujjwal Pay World";
+                                            $send = \Myhelper::sms($fundreport->mobile, $msg);
+                                            if($this->iswpdeliver() == 'ON'){
+                                                $send = \Myhelper::whatsappsms($fundreport->mobile, $msg);
+                                            }
                                         }
                                         else if(isset($response->status) && $response->status == "TUP"){
                                            
@@ -780,6 +856,7 @@ class PdmtController extends Controller
                                                 'status' => 'TXN',
                                                 'data' => $dataarr
                                             );
+                                            
                                         }else if(isset($response->status) && ($response->status == "ERR")){
                                            
                                             User::where('id', $user->id)->increment('mainwallet', $report->charge + $report->amount);
@@ -900,7 +977,7 @@ class PdmtController extends Controller
                     }
                 }
                 sleep(1);
-            }
+            
         }else{  
                 $outputs['statuscode'] = "TXN";
                 $user = User::where('id', $post->user_id)->first();
@@ -921,10 +998,32 @@ class PdmtController extends Controller
                  $post['provider_id'] = $provider->id;
                  $post['charge'] = \Myhelper::getCommission($post->amount, $user->scheme_id, $post->provider_id, $user->role->slug);
                 
-                
+                if($provider->api->status == 0)
+                {
+                    $outputs['data'][] = array(
+                        'amount' => $post->amount,
+                        'status' => 'TXF',
+                        'data'   => [
+                            "statuscode" => "TXF",
+                            "status" => "DMT service is down. Wait for some time.",
+                            "message" => "DMT service is down. Wait for some time.",
+                        ]
+                    );
+                }else
                 if($user->mainwallet < $post->amount + $post->charge){
                     $outputs['data'][] = array(
                         'amount' => $post->amount,
+                        'status' => 'TXF',
+                        'data'   => [
+                            "statuscode" => "TXF",
+                            "status" => "Insufficient Wallet Balance",
+                            "message" => "Insufficient Wallet Balance",
+                        ]
+                    );
+                }else if(($user->mainwallet - $this->usermainlocked($post->user_id)) < $post->amount + $post->charge ){
+                    
+                    $outputs['data'][] = array(
+                        'amount' => $amount,
                         'status' => 'TXF',
                         'data'   => [
                             "statuscode" => "TXF",
@@ -960,7 +1059,8 @@ class PdmtController extends Controller
                         'product' => 'dmt',
                         'balance' => $user->mainwallet,
                         'description' => $post->benemobile, 
-                        'trans_type' => 'debit'
+                        'trans_type' => 'debit',
+                        'ip' => $post->ip()
                     ];
                     
                     $previousrecharge = Report::where('number', $post->beneaccount)->where('amount', $post->amount)->where('provider_id', $post->provider_id)->whereBetween('created_at', [Carbon::now()->subMinutes(2)->format('Y-m-d H:i:s'), Carbon::now()->format('Y-m-d H:i:s')])->count();
@@ -983,6 +1083,11 @@ class PdmtController extends Controller
                                 
                                 $post['reportid'] = $report->id;
                                // dd($provider->api->code);
+                               if($user->id == 2)
+                               {
+                                   $provider->api->code = 'bxpayout';
+                                   
+                               }
                                 switch ($provider->api->code) {
                                     case 'anshpaydmt':
                                         $url = $provider->api->url.'PayoutRequest';
@@ -1012,7 +1117,7 @@ class PdmtController extends Controller
                                         
                                         $parameter = [
                                             "token" => $provider->api->username,
-                                            "paymode" => "IMPS",
+                                            "paymode" => strtoupper($post->mode),
                                             "ip" => "195.250.21.239",
                                             "amount" => $post->amount,
                                             "name" => $post->benename,
@@ -1020,7 +1125,8 @@ class PdmtController extends Controller
                                             "callback" => "https://login.ujjwalpayworld.in/api/callbacks/payouts/m2money",
                                             "account" => $post->beneaccount,
                                             "ifsc" => $post->beneifsc,
-                                            "bank" => $post->benebank
+                                            "bank" => $post->benebank,
+                                            "mobile" => $post->mobile
                                         ];
                                          $header = array(
                                             "Cache-Control: no-cache",
@@ -1041,6 +1147,23 @@ class PdmtController extends Controller
                                                 'status'=> 'success',
                                                 'refno' => (isset($response->rrn))? $response->rrn : 'failed'
                                             ]);
+                                            
+                                            
+                                            $fundreport = Report::where('txnid', $post->txnid)->first();
+                                            $charge = \Myhelper::getCommission($fundreport->amount, $user->scheme_id, $fundreport->provider_id, $user->role->slug);
+                                            $post['gst'] = $this->getGst($fundreport->charge  - $charge);
+                                            User::where('id', $fundreport->user_id)->increment('mainwallet', $fundreport->charge - $charge );
+                                            \Myhelper::commission($fundreport);
+                                            $update['status'] = "success";
+                                            $update['refno'] = $post->refno;
+                                            
+                                            $transferamount = number_format((float)$fundreport->amount, 2, '.', '');
+                                            $crediteracc = 'XXXX'.substr($fundreport->number, -4);
+                                            $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards Ujjwal Pay World";
+                                            $send = \Myhelper::sms($fundreport->mobile, $msg);
+                                            if($this->iswpdeliver() == 'ON'){
+                                                $send = \Myhelper::whatsappsms($fundreport->mobile, $msg);
+                                            }
                                         }
                                         else if(isset($response->status) && $response->status == "TUP"){
                                            
@@ -1083,8 +1206,119 @@ class PdmtController extends Controller
                                         }
                                         sleep(1);
                                         return response()->json($outputs, 200);
-                                    break; 
+                                    break;
                                     
+                                    case 'bxpayout':
+                                        
+                                        if($provider->api->status == 1)
+                                        {
+                                            $parameter = [
+                                                "amount"=> $post->amount, 
+                                                "mobileNumber"=> $post->mobile, 
+                                                "requestId"=> $post->txnid, 
+                                                "accountNumber"=> $post->beneaccount, 
+                                                "ifscCode"=> $post->beneifsc, 
+                                                "beneficiaryName"=> !empty($post->benename)?$post->benename:$user->name, 
+                                                "bankName"=> $post->benebank, 
+                                                "transferMode"=> 'IMPS', 
+                                                "latitude"=> $post->lat, 
+                                                "longitude"=> $post->lon, 
+                                                "emailId"=> $user->email, 
+                                                "purpose"=> "Settlement"
+                                                
+                                            ];
+                                            
+                                            // dd($parameter);
+                                             $header = array(
+                                                "Cache-Control: no-cache",
+                                                "Content-Type: application/json",
+                                                'apiToken:57381E7EDB103C88B4E4D4CCB9259592'
+                                            );
+                                            $url = 'https://10x.api.branchx.in/service/payout';
+                                            $result = \Myhelper::curl($url,'POST', json_encode($parameter), $header, "yes", "BX DMT", $post->txnid);
+                                            $response = json_decode($result['response']);
+                                            if(isset($response->status) && $response->status == "SUCCESS")
+                                            {
+                                                $dataarr = ['statuscode'=> 'TXN', 'status'=> 'Transaction Success','message'=> "Transaction Success", 'rrn' => $response->data->utr, 'payid' => $post->reportid];
+                                                
+                                                $outputs['data'][] = array(
+                                                    'amount' => $post->amount,
+                                                    'status' => 'TXN',
+                                                    'data' => $dataarr
+                                                );
+                                                 Report::where('id', $post->reportid)->update([
+                                                    'status'=> 'success',
+                                                    'refno' => (isset($response->data->utr))? $response->data->utr : 'failed'
+                                                ]);
+                                                
+                                                
+                                                $fundreport = Report::where('txnid', $post->txnid)->first();
+                                                $charge = \Myhelper::getCommission($fundreport->amount, $user->scheme_id, $fundreport->provider_id, $user->role->slug);
+                                                $post['gst'] = $this->getGst($fundreport->charge  - $charge);
+                                                User::where('id', $fundreport->user_id)->increment('mainwallet', $fundreport->charge - $charge );
+                                                \Myhelper::commission($fundreport);
+                                                $update['status'] = "success";
+                                                $update['refno'] = $post->refno;
+                                                
+                                                $transferamount = number_format((float)$fundreport->amount, 2, '.', '');
+                                                $crediteracc = 'XXXX'.substr($fundreport->number, -4);
+                                                $msg = "Dear partner, your a/c ".$crediteracc." is credited with INR ".$transferamount." on ".date('d-m-Y')." Regards MADHAVAM DIGITAL PAYMENTS";
+                                                $send = \Myhelper::sms($fundreport->mobile, $msg);
+                                                if($this->iswpdeliver() == 'ON'){
+                                                    $send = \Myhelper::whatsappsms($fundreport->mobile, $msg);
+                                                }
+                                            }
+                                            else if(isset($response->status) && $response->status == "PENDING"){
+                                               
+                                                $dataarr = ['statuscode'=> 'TXN', 'status'=> 'Transaction Under Process','message'=> "Transaction Under Process", 'rrn' => 'pending', 'payid' => $post->reportid];
+                                                
+                                                $outputs['data'][] = array(
+                                                    'amount' => $post->amount,
+                                                    'status' => 'TXN',
+                                                    'data' => $dataarr
+                                                );
+                                            }else if(isset($response->status) && ($response->status == "FAILED")){
+                                                
+                                                if(str_contains($response->message,'Insufficient balance'))
+                                                {
+                                                    $response->message = 'Something went wrong';
+                                                }
+                                               
+                                                User::where('id', $user->id)->increment('mainwallet', $report->charge + $report->amount);
+                                                if($response->message == 'Low balance')
+                                                {
+                                                    $response->message = 'Something went wrong';
+                                                }else if($response->status == 400)
+                                                {
+                                                    $response->message = 'Something went wrong';
+                                                }
+                                                Report::where('id', $post->reportid)->update([
+                                                    'status'=> 'failed',
+                                                    'refno' => (isset($response->message))? $response->message : 'failed'
+                                                ]);
+                                      
+                                                $outputs['data'][] = array(
+                                                    'amount' => $post->amount,
+                                                    'status' => 'TXF',
+                                                    'data' => [
+                                                        "statuscode" => "TXF",
+                                                        "status" => $response->message??"Something went wrong",
+                                                        "message" => $response->message??"Something went wrong",
+                                                    ]
+                                                );
+                                            }else{ 
+                                                $dataarr = ['statuscode'=> 'TXN', 'status'=> 'Transaction Under Process','message'=> "Transaction Under Process", 'rrn' => 'pending', 'payid' => $post->reportid];
+                                                
+                                                $outputs['data'][] = array(
+                                                    'amount' => $post->amount,
+                                                    'status' => 'TXN',
+                                                    'data' => $dataarr
+                                                );
+                                            }
+                                            sleep(1);
+                                            return response()->json($outputs, 200);
+                                            }
+                                        break;
                                     case 'paysprintpaybank':
                                       $url = $provider->api->url;
                                         $datass = [
@@ -1558,6 +1792,7 @@ class PdmtController extends Controller
                         'balance' => $balance->mainwallet,
                         'description' => '',
                         'trans_type'  => 'debit',
+                        'ip' => $post->ip()
                     ];
 
                     User::where('id', $post->user_id)->decrement('mainwallet', $post->charge + $post->amount);
@@ -1573,13 +1808,21 @@ class PdmtController extends Controller
             case 'ekycotp':
             case 'addbeneficiary':
             case 'benedelete':
-            case 'refundotp':
+           
                 if(isset($response->response_code) && $response->response_code == "1"){
-                    return response()->json(['statuscode'=> 'TXN', 'message'=> 'Transaction Successfull']);
+                    return response()->json(['statuscode'=> 'TXN', 'message'=> 'Transaction Successfull','data'=> $response->data,'mobile'=>$post->mobile]);
                 }else{
                     return response()->json(['statuscode'=> 'ERR', 'message'=> $response->message]);
                 }
                 break;
+                
+            case 'refundotp':
+                if(isset($response->response_code) && $response->response_code == "1"){
+                    return response()->json(['statuscode'=> 'TXN', 'message'=> 'Transaction Successfull','mobile'=>$post->mobile,'transid'=>$post->id]);
+                }else{
+                    return response()->json(['statuscode'=> 'ERR', 'message'=> $response->message]);
+                }
+                break;    
                 
             case 'getrefund':
                 if(isset($response->response_code) && $response->response_code == "1"){
@@ -1649,6 +1892,7 @@ class PdmtController extends Controller
                         'balance' => $balance->mainwallet,
                         'description' => $post->benemobile,
                         'trans_type'  => 'debit',
+                        'ip' => $post->ip()
                     ];
 
                     User::where('id', $post->user_id)->decrement('mainwallet', $post->charge + $post->amount);
@@ -1678,6 +1922,7 @@ class PdmtController extends Controller
                         'balance' => $balance->mainwallet,
                         'description' => $post->benemobile,
                         'trans_type'  => 'debit',
+                        'ip' => $post->ip()
                     ];
 
                     $report = Report::create($insert);

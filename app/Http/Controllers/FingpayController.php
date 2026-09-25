@@ -386,29 +386,30 @@ class FingpayController extends Controller
 
         if($post->transactionType == "CW" || $post->transactionType == "M" || $post->transactionType == "MS"){
             if($post->transactionType == "CW"){
-                if($post->transactionAmount >=1 && $post->transactionAmount <=499){
+                if($post->transactionAmount >=100 && $post->transactionAmount <=499){
                     $provider = Provider::where('recharge1', 'aeps1')->first();
-                }elseif($post->transactionAmount >499 && $post->transactionAmount <=999){
+                }elseif($post->transactionAmount >499 && $post->transactionAmount <=1000){
                     $provider = Provider::where('recharge1', 'aeps2')->first();
-                }elseif($post->transactionAmount >999 && $post->transactionAmount <=1499){
+                }elseif($post->transactionAmount >1000 && $post->transactionAmount <=1500){
                     $provider = Provider::where('recharge1', 'aeps3')->first();
-                }elseif($post->transactionAmount >1499 && $post->transactionAmount <=1999){
+                }elseif($post->transactionAmount >1500 && $post->transactionAmount <=2000){
                     $provider = Provider::where('recharge1', 'aeps4')->first();
-                }elseif($post->transactionAmount >1999 && $post->transactionAmount <=2499){
+                }elseif($post->transactionAmount >2000 && $post->transactionAmount <=2500){
                     $provider = Provider::where('recharge1', 'aeps5')->first();
-                }elseif($post->transactionAmount >2499 && $post->transactionAmount <=2999){
+                }elseif($post->transactionAmount >2500 && $post->transactionAmount <=3000){
                     $provider = Provider::where('recharge1', 'aeps6')->first();
-                }elseif($post->transactionAmount >2999 && $post->transactionAmount <=3499){
+                }elseif($post->transactionAmount >3000 && $post->transactionAmount <=4000){
                     $provider = Provider::where('recharge1', 'aeps7')->first();
-                }elseif($post->transactionAmount >3499 && $post->transactionAmount <=3999){
+                }elseif($post->transactionAmount >4000 && $post->transactionAmount <=5000){
                     $provider = Provider::where('recharge1', 'aeps8')->first();
-                }elseif($post->transactionAmount >3999 && $post->transactionAmount <=4499){
+                }elseif($post->transactionAmount >5000 && $post->transactionAmount <=7000){
                     $provider = Provider::where('recharge1', 'aeps9')->first();
-                }elseif($post->transactionAmount >4499 && $post->transactionAmount <=4999){
+                }elseif($post->transactionAmount >7000 && $post->transactionAmount <=10000){
                     $provider = Provider::where('recharge1', 'aeps10')->first();
-                }elseif($post->transactionAmount >4999 && $post->transactionAmount <=10000){
-                    $provider = Provider::where('recharge1', 'aeps11')->first();
                 }
+                // elseif($post->transactionAmount >4999 && $post->transactionAmount <=10000){
+                //     $provider = Provider::where('recharge1', 'aeps11')->first();
+                // }
             }elseif($post->transactionType == "M"){
                 if($post->transactionAmount >=1 && $post->transactionAmount <=10000){
                     $provider = Provider::where('recharge1', 'aadharpay1')->first();

@@ -79,6 +79,23 @@ class Permission {
             return false;
         }
     }
+    
+    public static function generateAepsUniqueToken() {
+        $today = Carbon::today();
+        $grandtotal = Aepsreport::whereDate('created_at', $today)->count();
+
+        if($grandtotal=='0'){
+            $txnId = date('d').date('m').date('Y').'001'; 
+        } else if($grandtotal < 10) {
+            $txnId = date('d').date('m').date('Y').'00'.($grandtotal + 1);   
+        }else if($grandtotal < 99) {
+            $txnId = date('d').date('m').date('Y').'0'.($grandtotal + 1);   
+        }else{
+            $txnId = date('d').date('m').date('Y').($grandtotal + 1);  
+        }
+        
+        return $txnId.rand(1111, 9999);
+    }
 
     public static function hasNotRole($roles) {
         if(Auth::check()){
@@ -119,7 +136,8 @@ class Permission {
 
     public static function mail($view, $data, $mailto, $name, $mailvia, $namevia, $subject)
     {
-       $check = Mail::send($view, $data, function($message) use($mailto, $name, $mailvia, $namevia, $subject) {
+        //return "success";
+      $check = Mail::send($view, $data, function($message) use($mailto, $name, $mailvia, $namevia, $subject) {
             $message->to($mailto, $name)->subject($subject);
             $message->from($mailvia, $namevia);
         });
@@ -133,12 +151,13 @@ class Permission {
     public static function sms($mobile, $content)
     {
         try{
+           
             $smsdata = \App\Models\Company::where('website', $_SERVER['HTTP_HOST'])->first();
             if(isset($smsdata->senderid) && $smsdata->senderid != ""){
 
                 $url = 'https://instantalerts.co/api/web/send?apikey='.$smsdata->smsuser."&sender=".$smsdata->senderid."&to=".$mobile."&message=".rawurlencode($content)."&format=json";
                 $result = \Myhelper::curl($url, "GET", "", [], "yes", "SMS", $mobile);
-                
+             
                 if($result['response'] != ''){
                     $response = json_decode($result['response']);
                     if (isset($response->status) && $response->status == "AWAITED-DLR") {
@@ -155,23 +174,24 @@ class Permission {
     
     public static function whatsappsms($mobile, $content)
     {
-        $wpnumbr = \DB::table('portal_settings')->where('code', 'wpsender')->first(['value']);
-        try{
+        return "success";
+        // $wpnumbr = \DB::table('portal_settings')->where('code', 'wpsender')->first(['value']);
+        // try{
 
-            $url = 'https://wa.panmitra.in/send-message?api_key=4T2J0K4Td5CPUQz2kVlCI0DECqGvz0&sender='.$wpnumbr->value.'&number=91'.$mobile.'&message='.rawurlencode($content);
-            $result = \Myhelper::curl($url, "GET", "", [], "yes", "WHATSAPP", $mobile);
-            return "success";
-            if($result['response'] != ''){
-                $response = json_decode($result['response']);
-                if ($response->status == true) {
-                    return "success";
-                }
-            }
+        //     $url = 'https://wa.panmitra.in/send-message?api_key=4T2J0K4Td5CPUQz2kVlCI0DECqGvz0&sender='.$wpnumbr->value.'&number=91'.$mobile.'&message='.rawurlencode($content);
+        //     $result = \Myhelper::curl($url, "GET", "", [], "yes", "WHATSAPP", $mobile);
+        //     return "success";
+        //     if($result['response'] != ''){
+        //         $response = json_decode($result['response']);
+        //         if ($response->status == true) {
+        //             return "success";
+        //         }
+        //     }
 
-          return "fail";
-        }catch(Exception $e){
-            return $e->getMessage();
-        }
+        //   return "fail";
+        // }catch(Exception $e){
+        //     return $e->getMessage();
+        // }
     }
     
     //new commission function
@@ -295,7 +315,7 @@ class Permission {
             $insert['credit_by'] = $report->user_id;
 
             $parentcommission = \Myhelper::getCommission($report->amount, $parent->scheme_id, $provider, 'whitelable');
-
+            \Log::info($parentcommission.'='.$precommission.'='.$report->id);
             if(in_array($report->product, ['recharge','billpay','aeps', 'microatm'])){
                 $insert['amount'] = $parentcommission - $precommission;
             }elseif($report->product == "utipancard"){
@@ -567,6 +587,13 @@ class Permission {
                 $comdata = Commission::where('scheme_id', $scheme)->where('slab', $slab)->first();
                 if ($comdata) {
                         switch ($role) {
+                            case 'apiuser':
+                                if ($comdata->type == "percent") {
+                                    $commission = $amount * $comdata->apiuser / 100;
+                                }else{
+                                    $commission = $comdata->apiuser;
+                                }
+                                break;
                             case 'whitelable':
                                 if ($comdata->type == "percent") {
                                     $commission = $amount * $comdata->whitelable / 100;

@@ -2,7 +2,7 @@
     <div class="iq-navbar-logo d-flex justify-content-between">
 
 
-        @if (Auth::user()->company->logo)
+        @if (Auth::user()->company->logo!= '')
             <a class="header-logo" href="{{ route('home') }}">
                 <img src="{{ asset('') }}logos/{{ Auth::user()->company->logo }}" class=" img-fluid rounded"
                     alt="">
@@ -10,7 +10,7 @@
         @else
             <a href="{{ route('home') }}" class="header-logo">
                 <img src="" class="img-fluid rounded" alt="">
-                <span>UjjwalPay</span>
+                <span>Virtual Bees</span>
             </a>
         @endif
         <div class="iq-menu-bt align-self-center">
@@ -56,62 +56,75 @@
                         @if (Myhelper::can(['cms_service']))
                         <li class="{{ Request::is('cms/*') ? 'active' : '' }}"><a href="{{route('cms')}}" class="iq-waves-effect"><i class="fa fa-address-card text-warning iq-arrow-left"></i> <span>CMS Service</span></a></li>
                         @endif
-
-                        <!--@if (Myhelper::can(['billpayment_service']))-->
-                        <!--    <li class="{{ Request::is('billpay/*') ? 'active' : '' }}">-->
-                        <!--        <a href="#userinfo" class="iq-waves-effect" data-toggle="collapse"-->
-                        <!--            aria-expanded="{{ Request::is('billpay/*') ? 'true' : 'false' }}"><span-->
-                        <!--                class="ripple rippleEffect"></span><i-->
-                        <!--                class="las la-file-invoice-dollar text-danger iq-arrow-left"></i><b>Bill-->
-                        <!--                Payment</b><i class="ri-arrow-right-s-line iq-arrow-right"></i></a>-->
-                        <!--        <ul id="userinfo"-->
-                        <!--            class="iq-submenu collapse {{ Request::is('billpay/*') ? 'show' : '' }}"-->
-                        <!--            data-parent="#iq-sidebar-toggle" style="">-->
-                        <!--            @if (Myhelper::can('billpayment_service'))-->
-                        <!--                <li class="{{ Request::is('billpay/electricity') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'electricity']) }}"><i-->
-                        <!--                            class="las la-charging-station text-danger"></i><b>Electricity</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/postpaid') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'postpaid']) }}"><i-->
-                        <!--                            class="fa fa-rupee text-success"></i><b>Postpaid</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/water') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'water']) }}"><i-->
-                        <!--                            class="las la-water text-dark"></i><b>Water</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/broadband') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'broadband']) }}"><i-->
-                        <!--                            class="las la-calendar text-info"></i><b>Broadband</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/lpg') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'lpggas']) }}"><i-->
-                        <!--                            class="las la-oil-can text-warning"></i><b>LPG Gas </b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/gas') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'gasutility']) }}"><i-->
-                        <!--                            class="las la-gas-pump text-danger"></i><b>Gas utility</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/landline') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'landline']) }}"><i-->
-                        <!--                            class="fa fa-phone text-success"></i><b>Landline</b></a></li>-->
-                                        <!--<li><a href="{{ route('bill', ['type' => 'postpaid']) }}">Postpaid</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/schoolfees') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'schoolfees']) }}"><i-->
-                        <!--                            class="fa fa-codepen text-warning"></i><b>Education Fees</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/loanrepay') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'loanrepay']) }}"><i-->
-                        <!--                            class="las la-inbox text-danger"></i><b>Loan Repayment</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/fasttag') ? 'active' : '' }}">-->
-                        <!--                    <a href="{{ route('bill', ['type' => 'fasttag']) }}"><i-->
-                        <!--                            class="las la-calendar text-warning"></i><b>FASTag</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/insurance') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'insurance']) }}"><i-->
-                        <!--                            class="ri-mail-send-line text-success"></i><b>LIC/Insurance</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/muncipal') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'muncipal']) }}"><i-->
-                        <!--                            class="las la-inbox text-warning"></i><b>Municipal Tax</b></a></li>-->
-                        <!--                <li class="{{ Request::is('billpay/housing') ? 'active' : '' }}"><a-->
-                        <!--                        href="{{ route('bill', ['type' => 'housing']) }}"><i-->
-                        <!--                            class="fa fa-home text-info"></i><b>Housing Tax</b></a></li>-->
-                        <!--            @endif-->
-                        <!--        </ul>-->
-                        <!--    </li>-->
-                        <!--@endif-->
+                        
+                         @if (Myhelper::can(['offline_billpayment_service']))
+                         
+                          <li class="{{ request()->routeIs('rkbill') ? 'active' : '' }}">
+                        <a href="{{ route('rkbill') }}" class="iq-waves-effect"><span
+                                class="ripple rippleEffect"></span><i class="fa fa-address-card text-warning iq-arrow-left"></i><b>Offline billpayment</b></a>
+                    </li>
+                           @endif
+                    @if (Myhelper::can(['insurance_service']))
+                        <li class="{{ Request::is('insurance/*') ? 'active' : '' }}">
+                            <a href="{{ route('insurance') }}" class="iq-waves-effect"><span
+                                class="ripple rippleEffect"></span><i class="fa fa-address-card text-warning iq-arrow-left"></i><b>Insurance</b></a>    
+                        </li>
+                    @endif
+                        @if (Myhelper::can(['billpayment_service']))
+                            <li class="{{ Request::is('billpay/*') ? 'active' : '' }}">
+                                <a href="#userinfo" class="iq-waves-effect" data-toggle="collapse"
+                                    aria-expanded="{{ Request::is('billpay/*') ? 'true' : 'false' }}"><span
+                                        class="ripple rippleEffect"></span><i
+                                        class="las la-file-invoice-dollar text-danger iq-arrow-left"></i><b>Bill
+                                        Payment</b><i class="ri-arrow-right-s-line iq-arrow-right"></i></a>
+                                <ul id="userinfo"
+                                    class="iq-submenu collapse {{ Request::is('billpay/*') ? 'show' : '' }}"
+                                    data-parent="#iq-sidebar-toggle" style="">
+                                    @if (Myhelper::can('billpayment_service'))
+                                        <li class="{{ Request::is('billpay/electricity') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'electricity']) }}"><i
+                                                    class="las la-charging-station text-danger"></i><b>Electricity</b></a></li>
+                                        <li class="{{ Request::is('billpay/postpaid') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'postpaid']) }}"><i
+                                                    class="fa fa-rupee text-success"></i><b>Postpaid</b></a></li>
+                                        <li class="{{ Request::is('billpay/water') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'water']) }}"><i
+                                                    class="las la-water text-dark"></i><b>Water</b></a></li>
+                                        <li class="{{ Request::is('billpay/broadband') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'broadband']) }}"><i
+                                                    class="las la-calendar text-info"></i><b>Broadband</b></a></li>
+                                        <li class="{{ Request::is('billpay/lpg') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'lpggas']) }}"><i
+                                                    class="las la-oil-can text-warning"></i><b>LPG Gas </b></a></li>
+                                        <li class="{{ Request::is('billpay/gas') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'gasutility']) }}"><i
+                                                    class="las la-gas-pump text-danger"></i><b>Gas utility</b></a></li>
+                                        <li class="{{ Request::is('billpay/landline') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'landline']) }}"><i
+                                                    class="fa fa-phone text-success"></i><b>Landline</b></a></li>
+                                        <li><a href="{{ route('bill', ['type' => 'postpaid']) }}">Postpaid</b></a></li>
+                                        <li class="{{ Request::is('billpay/schoolfees') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'schoolfees']) }}"><i
+                                                    class="fa fa-codepen text-warning"></i><b>Education Fees</b></a></li>
+                                        <li class="{{ Request::is('billpay/loanrepay') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'loanrepay']) }}"><i
+                                                    class="las la-inbox text-danger"></i><b>Loan Repayment</b></a></li>
+                                        <li class="{{ Request::is('billpay/fasttag') ? 'active' : '' }}">
+                                            <a href="{{ route('bill', ['type' => 'fasttag']) }}"><i
+                                                    class="las la-calendar text-warning"></i><b>FASTag</b></a></li>
+                                        <li class="{{ Request::is('billpay/insurance') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'insurance']) }}"><i
+                                                    class="ri-mail-send-line text-success"></i><b>LIC/Insurance</b></a></li>
+                                        <li class="{{ Request::is('billpay/muncipal') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'muncipal']) }}"><i
+                                                    class="las la-inbox text-warning"></i><b>Municipal Tax</b></a></li>
+                                        <li class="{{ Request::is('billpay/housing') ? 'active' : '' }}"><a
+                                                href="{{ route('bill', ['type' => 'housing']) }}"><i
+                                                    class="fa fa-home text-info"></i><b>Housing Tax</b></a></li>
+                                    @endif
+                                </ul>
+                            </li>
+                        @endif
 
                         <!--@if (Myhelper::can(['flight_service']))-->
                         <!--    <li class="{{ Request::is('flight/*') ? 'active' : '' }}">-->
@@ -299,7 +312,16 @@
                             <ul id="member"
                                 class="iq-submenu collapse {{ Request::is('member/*') ? 'show' : '' }}"
                                 data-parent="#iq-sidebar-toggle">
-
+                                @if (Myhelper::can(['view_sabadmin']))
+                                    <li class="{{ Request::is('member/sabadmin') ? 'active' : '' }}"><a
+                                            href="{{ route('member', ['type' => 'sabadmin']) }}"><i
+                                                class="ri-file-chart-line text-warning"></i><b>Sab Admin</b></a></li>
+                                @endif
+                                @if (Myhelper::can(['view_apiuser']))
+                                    <li class="{{ Request::is('member/apiuser') ? 'active' : '' }}"><a
+                                            href="{{ route('member', ['type' => 'apiuser']) }}"><i
+                                                class="ri-file-chart-line text-warning"></i><b>API Partner</b></a></li>
+                                @endif
                                 @if (Myhelper::can(['view_whitelable']))
                                     <li class="{{ Request::is('member/whitelable') ? 'active' : '' }}"><a
                                             href="{{ route('member', ['type' => 'whitelable']) }}"><i
@@ -439,26 +461,26 @@
                     <!--@endif-->
 
 
-                    <!--@if (Myhelper::hasRole('admin'))-->
-                    <!--    <li>-->
-                    <!--        <a href="#apiintegration" class="iq-waves-effect collapsed" data-toggle="collapse"-->
-                    <!--            aria-expanded="false"><i class="lab la-wpforms text-info iq-arrow-left"></i><b>Api Integration Tools</b><i class="ri-arrow-right-s-line iq-arrow-right"></i></a>-->
-                    <!--        <ul id="apiintegration" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">-->
-                    <!--        <li class="navigation-header" style="border: none;margin-left:16px;"><span>Api Switches</span> <i class="icon-menu" title="" data-original-title="Main pages"></i></li>-->
+                    @if (Myhelper::hasRole('admin'))
+                        <li>
+                            <a href="#apiintegration" class="iq-waves-effect collapsed" data-toggle="collapse"
+                                aria-expanded="false"><i class="lab la-wpforms text-info iq-arrow-left"></i><b>Api Integration Tools</b><i class="ri-arrow-right-s-line iq-arrow-right"></i></a>
+                            <ul id="apiintegration" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                            <!--<li class="navigation-header" style="border: none;margin-left:16px;"><span>Api Switches</span> <i class="icon-menu" title="" data-original-title="Main pages"></i></li>-->
                                 
-                    <!--            <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'amount'])}}"><i class="las la-book text-danger"></i><b>Amount Wise</b></a></li>-->
-                    <!--            <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'state'])}}"><i class="las la-book text-danger"></i><b>State Wise</b></a></li>-->
-                    <!--            <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'user'])}}"><i class="las la-book text-danger"></i><b>User Wise</b></a></li>-->
-                    <!--        <li class="navigation-header" style="border: none;margin-left:15px;"><span>Integration</span> <i class="icon-menu" title="" data-original-title="Main pages"></i></li>-->
+                            <!--    <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'amount'])}}"><i class="las la-book text-danger"></i><b>Amount Wise</b></a></li>-->
+                            <!--    <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'state'])}}"><i class="las la-book text-danger"></i><b>State Wise</b></a></li>-->
+                            <!--    <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'user'])}}"><i class="las la-book text-danger"></i><b>User Wise</b></a></li>-->
+                            <li class="navigation-header" style="border: none;margin-left:15px;"><span>Integration</span> <i class="icon-menu" title="" data-original-title="Main pages"></i></li>
                                 
-                    <!--            <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'rintegration'])}}"><i class="las la-book text-danger"></i><b>Recharge Api Integration</b></a></li>-->
-                    <!--            <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'operator'])}}"><i class="las la-book text-danger"></i><b>Api Operator</b></a></li>-->
-                    <!--            <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'circle'])}}"><i class="las la-book text-danger"></i><b>Api Circle</b></a></li>-->
+                                <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'rintegration'])}}"><i class="las la-book text-danger"></i><b>Recharge Api Integration</b></a></li>
+                                <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'operator'])}}"><i class="las la-book text-danger"></i><b>Api Operator</b></a></li>
+                                <li class="{{ Request::is('api_switch') ? 'active' : '' }}"><a href="{{route('apiswitch', ['type' => 'circle'])}}"><i class="las la-book text-danger"></i><b>Api Circle</b></a></li>
 
                                
-                    <!--        </ul>-->
-                    <!--    </li>-->
-                    <!--@endif-->
+                            </ul>
+                        </li>
+                    @endif
 
 
                     <!-- @if (\Myhelper::can('invesment_show') && !Myhelper::hasRole('admin'))
@@ -660,8 +682,8 @@
                                 Statement</b></a></li>
                         @endif --}}
 
-                                {{-- <li class="{{Request::is('statement/loanenquiry') ? 'active' : '' }}"><a href="{{route('statement', ['type' => 'loanenquiry'])}}"><i class="fa fa-rupee text-success"></i><b>Loanenquiry Statement </b></a></li>
-                        <li class="{{Request::is('statement/cmsreport') ? 'active' : '' }}"><a href="{{route('statement', ['type' => 'cmsreport'])}}"><i class="ri-map-pin-time-line text-warning"></i><b>CMS Report</a></b></a></li> --}}
+                                <li class="{{Request::is('statement/loanenquiry') ? 'active' : '' }}"><a href="{{route('statement', ['type' => 'loanenquiry'])}}"><i class="fa fa-rupee text-success"></i><b>Loanenquiry Statement </b></a></li>
+                        <li class="{{Request::is('statement/cmsreport') ? 'active' : '' }}"><a href="{{route('statement', ['type' => 'cmsreport'])}}"><i class="ri-map-pin-time-line text-warning"></i><b>CMS Report</a></b></a></li>
                             </ul>
                         </li>
                     @endif

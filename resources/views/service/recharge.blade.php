@@ -118,35 +118,82 @@ $table = 'yes';
 <script type="text/javascript">
     $(document).ready(function() {
 
-        // $('#mobile_no').keyup(function() {
-        //     var $mob = $('#mobile_no').val();
-        //     if ($mob.length >= 8) {
-        //         $.ajax({
-        //             url: "{{ route('rechargeprovider') }}",
-        //             type: "POST",
-        //             data: {
-        //                 type: '{{ $type }}',
-        //                 Mobileno: $mob,
-        //                 _token: '{{ csrf_token() }}'
-        //             },
+        $('#mobile_no').keyup(function() {
+            var $mob = $('#mobile_no').val();
+            if ($mob.length >= 8) {
+                getoperator();
+                // $.ajax({
+                //     url: "{{ route('rechargeprovider') }}",
+                //     type: "POST",
+                //     data: {
+                //         type: '{{ $type }}',
+                //         Mobileno: $mob,
+                //         _token: '{{ csrf_token() }}'
+                //     },
 
-        //             success: function(data) {
-        //                 if (data.statuscode == 'TXN')
+                //     success: function(data) {
+                //         if (data.statuscode == 'TXN')
 
-        //                     $('#provider_id').empty();
+                //             $('#provider_id').empty();
 
-        //                 $('#provider_id').append('<option value="' + data.provider.id +
-        //                     '">' + data.provider.name + '</option>');
-
-
-        //             }
-        //         })
-        //     }
+                //         $('#provider_id').append('<option value="' + data.provider.id +
+                //             '">' + data.provider.name + '</option>');
 
 
-        // });
+                //     }
+                // })
+            }
 
 
+        });
+
+        function getoperator() {
+
+        @if($type == "mobile" || $type == "dth")
+        var number = $('[name="number"]').val();
+        if (number != '') {
+            $.ajax({
+                    url: '{{route("getoperator")}}',
+                    type: 'post',
+                    dataType: 'json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        'number': number,
+                        "type": "{{$type}}"
+                    },
+                    beforeSend: function() {
+                        swal({
+                            title: 'Wait!',
+                            text: 'Please wait, we are fetching commission details',
+                            onOpen: () => {
+                                swal.showLoading()
+                            },
+                            allowOutsideClick: () => !swal.isLoading()
+                        });
+                    }
+                })
+                .success(function(data) {
+                    swal.close();
+                    console.log(data);
+                    if (data.status == "success") {
+                        $("[name='provider_id']").val(data.data).trigger('change');
+                        $("[name='circle']").val(data.circle);
+                        $("[name='providername']").val(data.providername);
+                    } else {
+                        notify(data.message, 'warning');
+                    }
+                })
+                .fail(function() {
+                    swal.close();
+                    notify('Somthing went wrong', 'warning');
+                });
+        } else {
+            notify('Mobile number and operator field required', 'warning');
+        }
+        @endif
+    }
         var url = "{{ url('statement/fetch') }}/rechargestatement/0";
 
         var onDraw = function() {};

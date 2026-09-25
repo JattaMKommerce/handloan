@@ -33,9 +33,7 @@ class UserController extends Controller
     protected $api;
     public function __construct()
     {
-
-        $this->api = Api::where('code', 'sadharverify')->first();
-
+        $this->api = Api::where('code', 'pancard')->first() ?? Api::where('code', 'sadharverify')->first();
     }
 
     public function slider(Request $post)
@@ -1017,9 +1015,13 @@ class UserController extends Controller
             return response()->json(['status' => 'TXF', "message" => "Your aren't registred with us."]);
         }
 
+        $Aadharfolder = public_path('kyc/adharcard');
+        if (!file_exists($Aadharfolder)) {
+            @mkdir($Aadharfolder, 0777, true);
+        }
+
         if ($post->hasFile('adharfrontpic')) {
             $img_adharfront = rand(1, 999) . time() . '.' . $post->adharfrontpic->getClientOriginalExtension();
-            $Aadharfolder = public_path('kyc/adharcard');
             $adharfront_upload = $post->adharfrontpic->move($Aadharfolder, $img_adharfront);
             $post['aadharcardpic'] = $img_adharfront;
         }
@@ -1030,10 +1032,20 @@ class UserController extends Controller
             $post['aadharcardbackpic'] = $img_adharback;
         }
 
-        if ($post->hasFile('pancardpics')) {
-            $img_panfront = rand(1, 999) . time() . '.' . $post->pancardpics->getClientOriginalExtension();
+        $panFile = $post->file('pancardpics') 
+                ?? $post->file('pancardpic') 
+                ?? $post->file('pancard') 
+                ?? $post->file('panimage') 
+                ?? $post->file('panpic')
+                ?? $post->file('pancardPics');
+
+        if ($panFile) {
             $Panfolder = public_path('kyc/pancard');
-            $panfront_upload = $post->pancardpics->move($Panfolder, $img_panfront);
+            if (!file_exists($Panfolder)) {
+                @mkdir($Panfolder, 0777, true);
+            }
+            $img_panfront = rand(1, 999) . time() . '.' . $panFile->getClientOriginalExtension();
+            $panfront_upload = $panFile->move($Panfolder, $img_panfront);
             $post['pancardpic'] = $img_panfront;
         }
 
@@ -1093,7 +1105,7 @@ class UserController extends Controller
                     "Cache-Control: no-cache",
                     "Content-Type: application/json",
                     "Token: " . $token['token'],
-                    "Authorisedkey: " . $this->api->optional1
+                    "Authorisedkey: " . ($this->api->optional1 ?? '')
                 );
                 $parameter = json_encode($parameter);
                 $result = \Myhelper::curl($url, "POST", $parameter, $header, "no");
@@ -1122,7 +1134,7 @@ class UserController extends Controller
                     "Cache-Control: no-cache",
                     "Content-Type: application/json",
                     "Token: " . $token['token'],
-                    "Authorisedkey: " . $this->api->optional1
+                    "Authorisedkey: " . ($this->api->optional1 ?? '')
                 );
 
                 $parameter = json_encode($parameter);
@@ -1168,7 +1180,7 @@ class UserController extends Controller
                     "Cache-Control: no-cache",
                     "Content-Type: application/json",
                     "Token: " . $token['token'],
-                    "Authorisedkey: " . $this->api->optional1
+                    "Authorisedkey: " . ($this->api->optional1 ?? '')
                 );
 
                 $parameter = json_encode($query);

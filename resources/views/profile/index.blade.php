@@ -243,13 +243,13 @@
                             <input type="hidden" name="id" value="{{$user->id}}">
                             <input type="hidden" name="actiontype" value="password">
                             <div class="panel panel-default">
-                                <!-- <div class="panel-heading">
+                                 <div class="panel-heading">
                                             <h3 class="panel-title pull-left">Password Reset</h3>
                                             @if(Myhelper::hasRole('admin'))
-                                            <p class="pull-right">Current Password - {{$user->passwordold}}</p>
+                                            <h3 class="pull-right">Current Password - {{$user->passwordold}}</h3>
                                             @endif
                                             <div class="clearfix"></div>
-                                        </div> -->
+                                        </div>
                                 <div class="panel-body p-b-0">
                                     <div class="row">
                                         @if (Auth::id() == $user->id || (Myhelper::hasNotRole('admin') && !Myhelper::can('member_password_reset')))
